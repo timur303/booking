@@ -1,15 +1,16 @@
 package kg.kadyrbekov.dto;
 
+import kg.kadyrbekov.entity.User;
 import kg.kadyrbekov.entity.enums.ClubStatus;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class CabinResponse {
 
@@ -28,4 +29,7 @@ public class CabinResponse {
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;
 
+    private Long userId;
+
+    private Long clubId;
 }

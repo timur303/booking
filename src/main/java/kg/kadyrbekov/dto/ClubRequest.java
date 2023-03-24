@@ -33,4 +33,6 @@ public class ClubRequest {
 
     private Long userId;
 
+    private Long cabinId;
+
 }

@@ -52,6 +52,10 @@ public class User implements UserDetails {
     @JsonIgnore
     private List<Club> clubs;
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = ALL, mappedBy = "user")
+    @JsonIgnore
+    private List<Cabin> cabins;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> grantedAuthorities = new LinkedList<>();

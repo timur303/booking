@@ -14,6 +14,12 @@ public class CabinRequest {
 
     private String name;
 
+    private String image;
+
+    private String description;
+
+    private String price;
+
     private boolean isBooked;
 
     @Enumerated(EnumType.STRING)
@@ -22,4 +28,6 @@ public class CabinRequest {
     private User user;
 
     private Long userId;
+
+    private Long clubId;
 }

@@ -22,21 +22,18 @@ public class ClubService {
     private final UserRepository userRepository;
 
 
-    public Club create(ClubRequest clubRequest, Long userId) {
+    public ClubResponse create(ClubRequest request, Long userId) {
         User user = userRepository.findById(userId).get();
-        clubRequest.setUser(user);
-        Club club = mapToEntity(clubRequest);
+        request.setUser(user);
+        Club club = mapToEntity(request);
         clubRepository.save(club);
-        return club;
+        return mapToResponse(club);
     }
 
-
-    public Club findByIdClub(Long clubId) {
-        return clubRepository.findById(clubId).orElseThrow(()
-                -> new NotFoundException("With id club not found"));
+    public ClubResponse findByIdClub(Long clubId) {
+        Club club = clubRepository.findById(clubId).get();
+        return clubResponse(club);
     }
-
-
 
 
     public Club mapToEntity(ClubRequest request) {
@@ -72,7 +69,7 @@ public class ClubService {
         clubResponse.setManagerName(club.getManagerName());
         clubResponse.setPhoneNumber(club.getPhoneNumber());
         clubResponse.setReview(club.getReview());
-
+        clubResponse.setUserId(club.getUserId());
         return clubResponse;
     }
 
