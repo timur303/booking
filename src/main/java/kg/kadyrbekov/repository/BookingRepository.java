@@ -1,6 +1,6 @@
 package kg.kadyrbekov.repository;
 
-import kg.kadyrbekov.entity.Booking;
+import kg.kadyrbekov.model.entity.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,9 +1,10 @@
 package kg.kadyrbekov.controller;
 
+
 import kg.kadyrbekov.config.jwt.JwtTokenUtil;
 import kg.kadyrbekov.dto.UserRequest;
 import kg.kadyrbekov.dto.UserResponse;
-import kg.kadyrbekov.entity.User;
+import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.mapper.LoginMapper;
 import kg.kadyrbekov.mapper.LoginResponse;
 import kg.kadyrbekov.mapper.ValidationType;

@@ -1,10 +1,10 @@
 package kg.kadyrbekov.service;
 
-import kg.kadyrbekov.entity.Booking;
-import kg.kadyrbekov.entity.Cabin;
-import kg.kadyrbekov.entity.Computer;
-import kg.kadyrbekov.entity.User;
-import kg.kadyrbekov.entity.enums.ClubStatus;
+import kg.kadyrbekov.model.entity.Booking;
+import kg.kadyrbekov.model.entity.Cabin;
+import kg.kadyrbekov.model.entity.Computer;
+import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.enums.ClubStatus;
 import kg.kadyrbekov.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -27,17 +27,12 @@ public class BookingService {
     private final BookingRepository bookingRepository;
 
 
-    public User getPrinciple() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        return userRepository.findByEmail(email).orElseThrow(
-                () -> {
-                    throw new NotFoundException(String.format("Пользователь с таким электронным адресом: %s не найден!", email));
-                });
+    public User userById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User with id not found"));
     }
 
-    public Booking bookCharity(Long cabinId) {
-        User user = getPrinciple();
+    public Booking bookCabin(Long cabinId) {
+        User user = new User();
         Cabin cabin = cabinRepository.findById(cabinId).orElseThrow(() -> new NotFoundException("cabin with id not found " + cabinId));
         Booking booking = new Booking();
         if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
@@ -52,8 +47,8 @@ public class BookingService {
         return booking;
     }
 
-    public Booking bookWishlist(Long computerId) {
-        User user = getPrinciple();
+    public Booking bookComputer(Long computerId) {
+        User user = new User();
         Computer computer = computerRepository.findById(computerId).orElseThrow(() -> new NotFoundException("Computer with id not found  " + computerId));
         Booking booking = new Booking();
         if (computer.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {

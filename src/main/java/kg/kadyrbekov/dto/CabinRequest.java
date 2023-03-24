@@ -1,7 +1,7 @@
 package kg.kadyrbekov.dto;
 
-import kg.kadyrbekov.entity.User;
-import kg.kadyrbekov.entity.enums.ClubStatus;
+import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.enums.ClubStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,12 +14,15 @@ public class CabinRequest {
 
     private String name;
 
-    private boolean isBooked;
+    private String image;
 
-    @Enumerated(EnumType.STRING)
-    private ClubStatus clubStatus;
+    private String description;
+
+    private String price;
 
     private User user;
 
     private Long userId;
+
+    private Long clubId;
 }

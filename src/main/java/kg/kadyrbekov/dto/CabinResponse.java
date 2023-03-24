@@ -1,15 +1,15 @@
 package kg.kadyrbekov.dto;
 
-import kg.kadyrbekov.entity.enums.ClubStatus;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import kg.kadyrbekov.model.enums.ClubStatus;
+import lombok.*;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class CabinResponse {
 
@@ -23,9 +23,10 @@ public class CabinResponse {
 
     private String price;
 
-    private boolean isBooked;
-
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;
 
+    private Long userId;
+
+    private Long clubId;
 }

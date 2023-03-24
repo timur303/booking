@@ -1,7 +1,7 @@
 package kg.kadyrbekov.dto;
 
-import kg.kadyrbekov.entity.User;
-import kg.kadyrbekov.entity.enums.City;
+import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.enums.City;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,5 +32,7 @@ public class ClubRequest {
     private User user;
 
     private Long userId;
+
+    private Long cabinId;
 
 }

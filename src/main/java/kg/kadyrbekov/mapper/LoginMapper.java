@@ -1,7 +1,7 @@
 package kg.kadyrbekov.mapper;
 
-import kg.kadyrbekov.entity.User;
-import kg.kadyrbekov.entity.enums.Role;
+import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.enums.Role;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -36,5 +36,4 @@ public class LoginMapper {
         String join = String.join("", authorities);
         loginResponse.setAuthorities(join);
     }
-
 }

@@ -2,8 +2,8 @@ package kg.kadyrbekov.service;
 
 import kg.kadyrbekov.dto.ClubRequest;
 import kg.kadyrbekov.dto.ClubResponse;
-import kg.kadyrbekov.entity.Club;
-import kg.kadyrbekov.entity.User;
+import kg.kadyrbekov.model.entity.Club;
+import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.repository.ClubRepository;
 import kg.kadyrbekov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,22 +22,35 @@ public class ClubService {
     private final UserRepository userRepository;
 
 
-    public Club create(ClubRequest clubRequest, Long userId) {
+    public ClubResponse create(ClubRequest request, Long userId) {
         User user = userRepository.findById(userId).get();
-        clubRequest.setUser(user);
-        Club club = mapToEntity(clubRequest);
+        request.setUser(user);
+        Club club = mapToEntity(request);
         clubRepository.save(club);
-        return club;
+        return mapToResponse(club);
     }
 
+    public ClubResponse update(ClubRequest request, Long id) {
+        Club club = findByIdClub(id);
+        club.setClubName(request.getClubName());
+        club.setLogo(request.getLogo());
+        club.setManagerName(request.getManagerName());
+        club.setDescription(request.getDescription());
+        club.setCity(request.getCity());
+        club.setPhoneNumber(request.getPhoneNumber());
+        clubRepository.save(club);
+        return clubResponse(club);
+    }
+
+    public void deleteById(Long id){
+        Club club = findByIdClub(id);
+        clubRepository.delete(club);
+    }
 
     public Club findByIdClub(Long clubId) {
-        return clubRepository.findById(clubId).orElseThrow(()
-                -> new NotFoundException("With id club not found"));
+        return clubRepository.findById(clubId).orElseThrow(
+                () -> new NotFoundException(String.format("Club with id not found ", clubId)));
     }
-
-
-
 
     public Club mapToEntity(ClubRequest request) {
         Optional<User> user = Optional.of(userRepository.findById(request.getUserId()).get());
@@ -72,7 +85,7 @@ public class ClubService {
         clubResponse.setManagerName(club.getManagerName());
         clubResponse.setPhoneNumber(club.getPhoneNumber());
         clubResponse.setReview(club.getReview());
-
+        clubResponse.setUserId(club.getUserId());
         return clubResponse;
     }
 

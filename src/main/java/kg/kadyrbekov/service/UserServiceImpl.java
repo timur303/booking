@@ -1,6 +1,6 @@
 package kg.kadyrbekov.service;
 
-import kg.kadyrbekov.entity.User;
+import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -2,8 +2,8 @@ package kg.kadyrbekov.service;
 
 import kg.kadyrbekov.dto.UserRequest;
 import kg.kadyrbekov.dto.UserResponse;
-import kg.kadyrbekov.entity.User;
-import kg.kadyrbekov.entity.enums.Role;
+import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.enums.Role;
 import kg.kadyrbekov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +22,6 @@ public class UserService {
     public UserResponse register(UserRequest userRequest) {
         User user1 = new User();
         userRepository.findByEmail(user1.getEmail());
-
         User user = mapToEntity(userRequest);
         user.setPassword(encoder.encode(userRequest.getPassword()));
         userRepository.save(user);

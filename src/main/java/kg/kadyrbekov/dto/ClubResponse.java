@@ -1,7 +1,7 @@
 package kg.kadyrbekov.dto;
 
-import kg.kadyrbekov.entity.User;
-import kg.kadyrbekov.entity.enums.City;
+import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.enums.City;
 import lombok.*;
 
 import javax.persistence.EnumType;
@@ -33,7 +33,6 @@ public class ClubResponse {
     @Enumerated(EnumType.STRING)
     private City city;
 
-    private User user;
 
     private Long userId;
 }
