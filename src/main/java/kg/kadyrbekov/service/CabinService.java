@@ -72,6 +72,7 @@ public class CabinService {
         cabin.setDescription(request.getDescription());
         cabin.setClubId(request.getClubId());
         cabin.setImage(request.getImage());
+        cabin.setClubStatus(request.getClubStatus());
 
         return cabin;
     }
@@ -102,6 +103,7 @@ public class CabinService {
                 .image(cabin.getImage())
                 .clubStatus(cabin.getClubStatus())
                 .clubId(cabin.getClubId())
+                .clubStatus(cabin.getClubStatus())
                 .build();
     }
 }

@@ -18,11 +18,16 @@ public class CabinRequest {
 
     private String description;
 
+    private int hours;
+
     private String price;
 
     private User user;
 
     private Long userId;
+
+    @Enumerated(EnumType.STRING)
+    private ClubStatus clubStatus;
 
     private Long clubId;
 }

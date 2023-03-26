@@ -5,11 +5,13 @@ import kg.kadyrbekov.dto.CabinResponse;
 import kg.kadyrbekov.model.entity.Cabin;
 import kg.kadyrbekov.service.CabinService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/cabin")
+@PreAuthorize("hasAnyAuthority('MANAGER')")
 public class CabinController {
 
     private final CabinService cabinService;

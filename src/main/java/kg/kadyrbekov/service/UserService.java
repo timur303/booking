@@ -18,7 +18,6 @@ public class UserService {
 
     private final PasswordEncoder encoder;
 
-
     public UserResponse register(UserRequest userRequest) {
         User user1 = new User();
         userRepository.findByEmail(user1.getEmail());
@@ -37,6 +36,8 @@ public class UserService {
         user.setPassword(request.getPassword());
         if (user.getFirstName().equals("Timur")) {
             user.setRole(Role.ADMIN);
+        } else if (user.getFirstName().equals("Zukh")) {
+                user.setRole(Role.MANAGER);
         } else {
             user.setRole(Role.USER);
         }

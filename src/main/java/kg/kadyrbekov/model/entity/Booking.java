@@ -26,6 +26,11 @@ public class Booking {
     @CreatedDate
     private LocalDate createdAt;
 
+    @CreatedDate
+    private LocalDate endAt;
+
+    private int hours;
+
     @OneToOne
     @JoinColumn(name = "cabin_id")
     private Cabin cabin;
@@ -43,7 +48,8 @@ public class Booking {
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonIgnore
-    private User userId;
-
+    private User user;
+    @Transient
+    private Long userId;
 
 }

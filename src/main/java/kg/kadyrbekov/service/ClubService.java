@@ -22,12 +22,11 @@ public class ClubService {
     private final UserRepository userRepository;
 
 
-    public ClubResponse create(ClubRequest request, Long userId) {
-        User user = userRepository.findById(userId).get();
+    public Club create(ClubRequest request, Long userId) {
+        User user = findByIdUser(userId);
         request.setUser(user);
-        Club club = mapToEntity(request);
-        clubRepository.save(club);
-        return mapToResponse(club);
+        Club club =  clubRepository.save(mapToEntity(request));
+        return (club);
     }
 
     public ClubResponse update(ClubRequest request, Long id) {
@@ -42,7 +41,7 @@ public class ClubService {
         return clubResponse(club);
     }
 
-    public void deleteById(Long id){
+    public void deleteById(Long id) {
         Club club = findByIdClub(id);
         clubRepository.delete(club);
     }
@@ -53,7 +52,8 @@ public class ClubService {
     }
 
     public Club mapToEntity(ClubRequest request) {
-        Optional<User> user = Optional.of(userRepository.findById(request.getUserId()).get());
+        Optional<User> user = Optional.of(userRepository
+                .findById(request.getUserId()).orElseThrow(() -> new NotFoundException("User with id not found")));
         Club club = new Club();
         BeanUtils.copyProperties(request, user);
         club.setUserId(request.getUserId());

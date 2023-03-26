@@ -10,6 +10,9 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static javax.persistence.CascadeType.*;
 
 @Getter
@@ -32,7 +35,7 @@ public class Computer {
 
     private String price;
 
-    private boolean isBooked;
+    private static int hours;
 
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;
@@ -53,4 +56,20 @@ public class Computer {
     @Transient
     Long userId;
 
+    public static Map<String, Object> countdown() throws InterruptedException {
+        int timeInMinutes = hours;
+        int timeInSeconds = timeInMinutes * 60;
+        for (int i = timeInSeconds; i >= 0; i--) {
+            int minutesLeft = i / 60;
+            int secondsLeft = i % 60;
+            Map<String, Object> result = new HashMap<>();
+            result.put("minutes", minutesLeft);
+            result.put("seconds", secondsLeft);
+            Thread.sleep(1000);
+            return result;
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "Time's up!");
+        return result;
+    }
 }

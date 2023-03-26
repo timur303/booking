@@ -20,6 +20,8 @@ public class ComputerRequest {
 
     private String price;
 
+    private Integer hours;
+
     private Long userId;
 
     private User user;

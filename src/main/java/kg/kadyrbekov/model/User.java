@@ -1,6 +1,7 @@
 package kg.kadyrbekov.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import kg.kadyrbekov.model.entity.Booking;
 import kg.kadyrbekov.model.entity.Cabin;
 import kg.kadyrbekov.model.entity.Club;
 import kg.kadyrbekov.model.enums.Role;
@@ -58,6 +59,11 @@ public class User implements UserDetails {
     @OneToMany(fetch = FetchType.LAZY, cascade = ALL, mappedBy = "user")
     @JsonIgnore
     private List<Cabin> cabins;
+
+
+    @OneToMany(cascade = ALL, mappedBy = "user")
+    @JsonIgnore
+    private List<Booking> bookings;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

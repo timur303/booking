@@ -5,11 +5,13 @@ import kg.kadyrbekov.dto.ComputerResponse;
 import kg.kadyrbekov.model.entity.Computer;
 import kg.kadyrbekov.service.ComputerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/computer")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('MANAGER','ADMIN')")
 public class ComputerController {
 
     private final ComputerService computerService;

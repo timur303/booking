@@ -23,6 +23,8 @@ public class ComputerResponse {
 
     private String price;
 
+    private Integer hours;
+
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;
 

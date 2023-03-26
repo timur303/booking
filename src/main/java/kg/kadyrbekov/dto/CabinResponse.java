@@ -23,6 +23,8 @@ public class CabinResponse {
 
     private String price;
 
+    private int hours;
+
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;
 

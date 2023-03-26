@@ -5,18 +5,20 @@ import kg.kadyrbekov.dto.ClubResponse;
 import kg.kadyrbekov.model.entity.Club;
 import kg.kadyrbekov.service.ClubService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/club")
+@PreAuthorize("hasAnyAuthority('ADMIN')")
 public class ClubController {
 
     private final ClubService clubService;
 
 
     @PostMapping
-    public ClubResponse save(@RequestBody ClubRequest clubRequest) {
+    public Club save(@RequestBody ClubRequest clubRequest) {
         return clubService.create(clubRequest, clubRequest.getUserId());
     }
 
