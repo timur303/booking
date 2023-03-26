@@ -1,5 +1,6 @@
 package kg.kadyrbekov.config.jwt;
 
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -18,15 +19,15 @@ public class JwtTokenUtil {
     @Value("S{jwt.secret}")
     private String jwtSecret;
 
-    private final Long JWT_TOKEN_VALIDITY = 30 + 24 * 60 * 60 * 1000L;
+    private final  Long JWT_TOKEN_VALIDITY = 30 + 24 * 60 * 60 * 1000L;
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    private String createToken(Map<String,Object> claims, String subject){
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(SignatureAlgorithm.HS512,jwtSecret)
                 .compact();
     }
 
