@@ -21,9 +21,7 @@ public class ComputerResponse {
 
     private String description;
 
-    private String price;
-
-    private Integer hours;
+    private double price;
 
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;

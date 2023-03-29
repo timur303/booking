@@ -2,16 +2,15 @@ package kg.kadyrbekov.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.entity.Booking;
 import kg.kadyrbekov.model.entity.Cabin;
 import kg.kadyrbekov.model.entity.Computer;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -20,11 +19,34 @@ import java.time.LocalDate;
 @Builder
 public class BookingResponse {
 
+    private String message;
+
+    public BookingResponse(String messages) {
+        this.messages = messages;
+    }
+
+    private String messages;
+
+    public BookingResponse(String message, Booking booking) {
+        this.message = message;
+        this.booking = booking;
+    }
+
+    private Booking booking;
+
     private Long id;
 
-    private LocalDate createdAt;
+    @CreatedDate
+    private LocalDateTime createdAt;
 
-    private int hours;
+    @CreatedDate
+    private LocalDateTime endAt;
+
+    private double hours;
+
+    private int minutes;
+
+    private double cost;
 
     private Cabin cabin;
 

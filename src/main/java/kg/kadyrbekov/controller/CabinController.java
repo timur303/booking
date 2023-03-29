@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/cabin")
-@PreAuthorize("hasAnyAuthority('MANAGER')")
+@PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
 public class CabinController {
 
     private final CabinService cabinService;

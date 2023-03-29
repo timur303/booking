@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -24,15 +25,24 @@ public class Booking {
     private Long id;
 
     @CreatedDate
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     @CreatedDate
-    private LocalDate endAt;
+    private LocalDateTime endAt;
 
-    private int hours;
+    private double hours;
+
+    private int minutes;
+
+    private double cost;
+
+    private String remainingTime;
+
+    private String response;
 
     @OneToOne
     @JoinColumn(name = "cabin_id")
+    @JsonIgnore
     private Cabin cabin;
     @Transient
     private Long cabinId;
@@ -44,8 +54,7 @@ public class Booking {
     @Transient
     private Long computerId;
 
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private User user;

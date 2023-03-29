@@ -18,9 +18,10 @@ public class ComputerRequest {
 
     private String description;
 
-    private String price;
+    private double price;
 
-    private Integer hours;
+    @Enumerated(EnumType.STRING)
+    private ClubStatus clubStatus;
 
     private Long userId;
 

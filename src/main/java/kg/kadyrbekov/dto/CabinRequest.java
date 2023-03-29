@@ -18,9 +18,7 @@ public class CabinRequest {
 
     private String description;
 
-    private int hours;
-
-    private String price;
+    private double price;
 
     private User user;
 

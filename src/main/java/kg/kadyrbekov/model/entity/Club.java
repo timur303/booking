@@ -41,11 +41,7 @@ public class Club {
 
     @Enumerated(EnumType.STRING)
     private City city;
-//
-//    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST,
-//            CascadeType.MERGE})
-//    @JoinTable(name = "club_cabin", joinColumns = @JoinColumn(name = "clubs_id")
-//            , inverseJoinColumns = @JoinColumn(name = "cabins_id"))
+
     @OneToMany(fetch = FetchType.LAZY, cascade = {DETACH, PERSIST, MERGE, REFRESH})
     @JsonIgnore
     private List<Cabin> cabins;
@@ -54,7 +50,7 @@ public class Club {
     @JsonIgnore
     private List<Computer> computers;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private User user;

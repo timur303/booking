@@ -1,84 +1,241 @@
 package kg.kadyrbekov.service;
 
+import kg.kadyrbekov.dto.BookingRequest;
 import kg.kadyrbekov.dto.BookingResponse;
+import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.entity.Booking;
 import kg.kadyrbekov.model.entity.Cabin;
 import kg.kadyrbekov.model.entity.Computer;
-import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.enums.ClubStatus;
-import kg.kadyrbekov.repository.*;
+import kg.kadyrbekov.repository.BookingRepository;
+import kg.kadyrbekov.repository.CabinRepository;
+import kg.kadyrbekov.repository.ComputerRepository;
+import kg.kadyrbekov.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class BookingService {
 
+    private final Map<Long, Thread> runningTimers = new ConcurrentHashMap<>();
     private final CabinRepository cabinRepository;
     private final BookingRepository bookingRepository;
 
+    private final ComputerRepository computerRepository;
     private final UserRepository userRepository;
 
-    public BookingService(CabinRepository cabinRepository, BookingRepository bookingRepository, UserRepository userRepository) {
+    public BookingService(CabinRepository cabinRepository, BookingRepository bookingRepository, ComputerRepository computerRepository, UserRepository userRepository) {
         this.cabinRepository = cabinRepository;
         this.bookingRepository = bookingRepository;
+        this.computerRepository = computerRepository;
         this.userRepository = userRepository;
     }
 
-    public Booking bookCabin(Long cabinId, int hours) throws InterruptedException {
-        User user = getCurrentUser();
-        Cabin cabin = cabinRepository.findById(cabinId).orElseThrow(() -> new NotFoundException("Cabin with id " + cabinId + " not found"));
-
-        if (cabin.getClubStatus() == ClubStatus.BOOKED) {
-            throw new RuntimeException("Cabin is already booked");
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime end = now.plusHours(hours);
-        Booking booking = new Booking();
-        booking.setCabin(cabin);
-        booking.setUser(user);
-        booking.setCreatedAt(LocalDate.from(now));
-        booking.setEndAt(LocalDate.from(end));
-        bookingRepository.save(booking);
-
-        cabin.setClubStatus(ClubStatus.BOOKED);
-        cabinRepository.save(cabin);
-
-        startCountdownTimer(cabin, hours);
-
-        return booking;
-    }
-
-    private void startCountdownTimer(Cabin cabin, int hours) {
-        Thread thread = new Thread(() -> {
-            try {
-                Thread.sleep(hours * 60 * 60 * 1000);
+    public Booking bookCabin(Long cabinId, int hour, int minute) throws InterruptedException {
+        User user = getPrinciple();
+        Cabin cabin = cabinRepository.findById(cabinId).orElseThrow(() -> new NotFoundException("Cabin with id not found " + cabinId));
+        if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
+            throw new RuntimeException("Cabin already booked");
+        } else if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
+            Booking booking = new Booking();
+            booking.setCreatedAt(LocalDateTime.now());
+            booking.setEndAt(LocalDateTime.now());
+            booking.setCabin(cabin);
+            booking.setUser(user);
+            bookingRepository.save(booking);
+            cabin.setClubStatus(ClubStatus.BOOKED);
+            cabinRepository.save(cabin);
+            Thread thread = new Thread(() -> {
+                try {
+                    countdown(hour, minute);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 cabin.setClubStatus(ClubStatus.NOT_BOOKED);
                 cabinRepository.save(cabin);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            });
+            thread.start();
+            return booking;
+        } else {
+            throw new RuntimeException("Cabin status not supported");
+        }
+    }
+
+    public void cancelBooking(Long cabinId) {
+        Thread thread = runningTimers.get(cabinId);
+        if (thread != null) {
+            thread.interrupt();
+            runningTimers.remove(cabinId);
+        }
+        Cabin cabin = cabinRepository.findById(cabinId)
+                .orElseThrow(() -> new NotFoundException("Cabin with id not found " + cabinId));
+        if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
+            cabin.setClubStatus(ClubStatus.NOT_BOOKED);
+            cabinRepository.save(cabin);
+        }
+    }
+
+    public Booking bookCabins(Long cabinId, int hour, int minute) throws InterruptedException {
+        User user = getPrinciple();
+        Cabin cabin = cabinRepository.findById(cabinId).orElseThrow(() -> new NotFoundException("Cabin with id not found " + cabinId));
+        if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
+            throw new RuntimeException("Cabin already booked");
+        } else if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
+            Booking booking = new Booking();
+            booking.setCreatedAt(LocalDateTime.now());
+            booking.setCabin(cabin);
+            booking.setUser(user);
+            bookingRepository.save(booking);
+            cabin.setClubStatus(ClubStatus.BOOKED);
+            cabinRepository.save(cabin);
+
+            int seconds = 0;
+            double totalSeconds = hour * 3600 + minute * 60 + seconds;
+            while (totalSeconds > 0) {
+                int remainingHours = (int) (totalSeconds / 3600);
+                int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
+                int remainingSeconds = (int) (totalSeconds % 60);
+                System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
+                Thread.sleep(1000);
+                totalSeconds--;
             }
-        });
-        thread.start();
+            System.out.println("Time's up!");
+            cabin.setClubStatus(ClubStatus.NOT_BOOKED);
+            cabinRepository.save(cabin);
+
+            double cost = (minute / 60.0) * cabin.getPrice();
+            System.out.println("Your check " + cost + " $ ");
+            booking.setCost(cost);
+            booking.setMinutes(minute);
+            booking.setEndAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+
+            return booking;
+        } else {
+            throw new RuntimeException("Cabin status not supported");
+        }
     }
 
-    private User getCurrentUser() {
-        // implementation to get the current user from the security context
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        return userRepository.findByEmail(email).orElseThrow(
-                () -> {
-                    throw new NotFoundException(String.format("Пользователь с таким электронным адресом: %s не найден!", email));
-                });
+    public Booking bookCabins1(BookingRequest bookingRequest, Long id) throws InterruptedException {
+        User user = getPrinciple();
+        Cabin cabin = cabinRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Cabin with id not found " + bookingRequest.getCabinId()));
+        if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
+            throw new RuntimeException("Cabin already booked");
+        } else if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
+            Booking booking = new Booking();
+            booking.setCreatedAt(LocalDateTime.now());
+            booking.setCabin(cabin);
+            booking.setUser(user);
+            booking.setCabinId(bookingRequest.getCabinId());
+            booking.setUserId(bookingRequest.getUserId());
+            bookingRepository.save(booking);
+            cabin.setClubStatus(ClubStatus.BOOKED);
+            cabinRepository.save(cabin);
+
+            int seconds = 0;
+            double totalSeconds = bookingRequest.getHours() * 3600 + bookingRequest.getMinutes() * 60 + seconds;
+            while (totalSeconds > 0) {
+                int remainingHours = (int) (totalSeconds / 3600);
+                int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
+                int remainingSeconds = (int) (totalSeconds % 60);
+                String remainingTime = String.format("%02d:%02d:%02d", remainingHours, remainingMinutes, remainingSeconds);
+                booking.setRemainingTime(remainingTime);
+                System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
+                Thread.sleep(1000);
+                totalSeconds--;
+            }
+            System.out.println("Time's up!");
+            cabin.setClubStatus(ClubStatus.NOT_BOOKED);
+            cabinRepository.save(cabin);
+
+            double cost = (bookingRequest.getMinutes() / 60.0) * cabin.getPrice();
+            String costInfo = "Your check " + cost + " $ ";
+            booking.setCost(cost);
+            booking.setMinutes(bookingRequest.getMinutes());
+            booking.setEndAt(LocalDateTime.now());
+            booking.setResponse(costInfo);
+            bookingRepository.save(booking);
+
+            return booking;
+
+        } else {
+            throw new RuntimeException("Cabin status not supported");
+        }
     }
 
+    public BookingResponse bookComps(Long compId, int hour, int minute) throws InterruptedException {
+        User user = getPrinciple();
+        Computer computer = computerRepository.findById(compId).orElseThrow(() -> new NotFoundException("Computer with id not found " + compId));
+        if (computer.getClubStatus().equals(ClubStatus.BOOKED)) {
+            throw new RuntimeException("Computer already booked");
+        } else if (computer.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
+            Booking booking = new Booking();
+            booking.setCreatedAt(LocalDateTime.now());
+            booking.setComputer(computer);
+            booking.setUser(user);
+            bookingRepository.save(booking);
+            computer.setClubStatus(ClubStatus.BOOKED);
+            computerRepository.save(computer);
+
+
+            int seconds = 0;
+            double totalSeconds = hour * 3600 + minute * 60 + seconds;
+            while (totalSeconds > 0) {
+                int remainingHours = (int) (totalSeconds / 3600);
+                int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
+                int remainingSeconds = (int) (totalSeconds % 60);
+                System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
+                Thread.sleep(1000);
+                totalSeconds--;
+            }
+            System.out.println("Time's up!");
+            computer.setClubStatus(ClubStatus.NOT_BOOKED);
+            computerRepository.save(computer);
+
+            double cost = (minute / 60.0) * computer.getPrice();
+            System.out.println("Your check " + cost + " $ ");
+            booking.setCost(cost);
+            booking.setMinutes(minute);
+            booking.setEndAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+
+            return bookingResponse(booking);
+        } else {
+            throw new RuntimeException("Computer status not supported");
+        }
+    }
+
+
+    public void countdown(int hours, int minutes) throws InterruptedException {
+        int seconds = 0;
+        double totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        while (totalSeconds > 0) {
+            int remainingHours = (int) (totalSeconds / 3600);
+            int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
+            int remainingSeconds = (int) (totalSeconds % 60);
+            System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
+            Thread.sleep(1000);
+            totalSeconds--;
+        }
+        System.out.println("Time's up!");
+        Cabin cabin = cabinRepository.findById(1L).get();
+
+
+        double cost = (minutes / 60.0) * cabin.getPrice();
+        System.out.println("Your check " + cost + " $ ");
+        Booking booking = bookingRepository.findById(1L).get();
+        booking.setCost(cost);
+        booking.setMinutes(minutes);
+        bookingRepository.save(booking);
+
+    }
 
     public User getPrinciple() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -90,79 +247,17 @@ public class BookingService {
     }
 
 
-    public Booking bookCabin(Long cabinId) throws InterruptedException {
-        User user = getPrinciple();
-        Cabin cabin = cabinRepository.findById(cabinId).orElseThrow(() -> new NotFoundException("cabin with id not found " + cabinId));
-        Booking booking = new Booking();
-        if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
-            throw new RuntimeException("Already booked");
-        } else if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
-        } else {
-            booking.setId(booking.getId());
-            booking.setCreatedAt(LocalDate.now());
-            booking.setCabin(cabin);
-            booking.setUser(user);
-            bookingRepository.save(booking);
-            cabin.setClubStatus(ClubStatus.BOOKED);
-            cabinRepository.save(cabin);
-        }
-
-        return booking;
-    }
-
-//    public Booking bookComputer(Long computerId) {
-//        User user = new User();
-//        Computer computer = computerRepository.findById(computerId).orElseThrow(() -> new NotFoundException("Computer with id not found  " + computerId));
-//        Booking booking = new Booking();
-//        if (computer.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
-//            booking.setId(booking.getId());
-//            booking.setCreatedAt(LocalDate.now());
-//            booking.setComputer(computer);
-//            booking.setUserId(user.getId());
-//            bookingRepository.save(booking);
-//            computer.setClubStatus(ClubStatus.BOOKED);
-//            computerRepository.save(computer);
-//        }
-//        return booking;
-//    }
-
-    public void unBookCabin(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundException("Booking with id " + bookingId + " not found"));
-        Cabin cabin = booking.getCabin();
-
-        if (cabin.getClubStatus() != ClubStatus.BOOKED) {
-            throw new RuntimeException("Cabin is not currently booked");
-        }
-
-        bookingRepository.delete(booking);
-        cabin.setClubStatus(ClubStatus.NOT_BOOKED);
-        cabinRepository.save(cabin);
-    }
-    public static Map<String, Object> countdown() throws InterruptedException {
-        int timeInMinutes = 60;
-        int timeInSeconds = timeInMinutes * 60;
-        for (int i = timeInSeconds; i >= 0; i--) {
-            int minutesLeft = i / 60;
-            int secondsLeft = i % 60;
-            Map<String, Object> result = new HashMap<>();
-            result.put("minutes", minutesLeft);
-            result.put("seconds", secondsLeft);
-            Thread.sleep(1000);
-            return result;
-        }
-        Map<String, Object> result = new HashMap<>();
-        result.put("message", "Time's up!");
-        return result;
-    }
-
     public BookingResponse bookingResponse(Booking booking) {
         return BookingResponse.builder()
                 .id(booking.getId())
                 .hours(booking.getHours())
                 .createdAt(booking.getCreatedAt())
+                .endAt(booking.getEndAt())
                 .userId(booking.getUserId())
                 .computerId(booking.getComputerId())
                 .cabinId(booking.getCabinId())
+                .cost(booking.getCost())
+                .minutes(booking.getMinutes())
                 .build();
     }
 }

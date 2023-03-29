@@ -63,7 +63,8 @@ public class CabinService {
     }
 
     public Cabin mapToEntity(CabinRequest request) {
-        Optional<User> user = Optional.of(userRepository.findById(request.getUserId()).get());
+        Optional<User> user = Optional.of(userRepository.findById(request.getUserId()).
+                orElseThrow(()->new NotFoundException("User with id not found")));
         Cabin cabin = new Cabin();
         cabin.setUser(user.get());
         cabin.setUserId(request.getUserId());

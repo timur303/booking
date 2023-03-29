@@ -21,9 +21,7 @@ public class CabinResponse {
 
     private String description;
 
-    private String price;
-
-    private int hours;
+    private double price;
 
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;

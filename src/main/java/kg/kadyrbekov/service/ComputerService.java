@@ -26,7 +26,8 @@ public class ComputerService {
 
     public ComputerResponse create(ComputerRequest request) {
         User user = new User();
-        Club club = clubRepository.findById(request.getClubId()).get();
+        Club club = clubRepository.findById(request.getClubId()).orElseThrow(
+                ()->new NotFoundException("Club with id not found"));
         Computer computer = mapToEntity(request);
         computer.setClub(club);
         computer.setClubId(request.getClubId());
@@ -59,12 +60,14 @@ public class ComputerService {
     }
 
     public Computer mapToEntity(ComputerRequest request) {
-        Optional<User> user = Optional.of(userRepository.findById(request.getUserId()).get());
+        Optional<User> user = Optional.of(userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new NotFoundException("User with id not found")));
         Computer computer = new Computer();
         computer.setUser(user.get());
         computer.setUserId(request.getUserId());
         computer.setName(request.getName());
         computer.setPrice(request.getPrice());
+        computer.setClubStatus(request.getClubStatus());
         computer.setDescription(request.getDescription());
         computer.setClubId(request.getClubId());
         computer.setImage(request.getImage());
