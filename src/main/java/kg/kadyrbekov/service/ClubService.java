@@ -2,16 +2,15 @@ package kg.kadyrbekov.service;
 
 import kg.kadyrbekov.dto.ClubRequest;
 import kg.kadyrbekov.dto.ClubResponse;
-import kg.kadyrbekov.model.entity.Club;
 import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.entity.Club;
 import kg.kadyrbekov.repository.ClubRepository;
 import kg.kadyrbekov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,13 +20,14 @@ public class ClubService {
 
     private final UserRepository userRepository;
 
-
-    public Club create(ClubRequest request, Long userId) {
-        User user = findByIdUser(userId);
-        request.setUser(user);
-        Club club =  clubRepository.save(mapToEntity(request));
-        return (club);
+    public ClubResponse create(ClubRequest request) {
+        User user = getAuthentication();
+        Club club = mapToEntity(request);
+        club.setUser(user);
+        clubRepository.save(club);
+        return mapToResponse(club);
     }
+
 
     public ClubResponse update(ClubRequest request, Long id) {
         Club club = findByIdClub(id);
@@ -52,21 +52,29 @@ public class ClubService {
     }
 
     public Club mapToEntity(ClubRequest request) {
-        Optional<User> user = Optional.of(userRepository
-                .findById(request.getUserId()).orElseThrow(() -> new NotFoundException("User with id not found")));
         Club club = new Club();
-        BeanUtils.copyProperties(request, user);
-        club.setUserId(request.getUserId());
-        club.setUser(user.get());
+        club.setUser(request.getUser());
         club.setClubName(request.getClubName());
         club.setCity(request.getCity());
         club.setLogo(request.getLogo());
-        club.setReview(request.getReview());
         club.setDescription(request.getDescription());
         club.setPhoneNumber(request.getPhoneNumber());
         club.setManagerName(request.getManagerName());
+        club.setHomeNumber(request.getHomeNumber());
+        club.setStreet(request.getStreet());
+        club.setState(request.getState());
+        club.setReviews(request.getReviews());
         return club;
     }
+
+
+    public User getAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new NotFoundException("User with email not found"));
+    }
+
 
     public ClubResponse mapToResponse(Club club) {
 
@@ -75,17 +83,17 @@ public class ClubService {
         }
 
         ClubResponse clubResponse = new ClubResponse();
-
         clubResponse.setId(club.getId());
         clubResponse.setClubName(club.getClubName());
         clubResponse.setCity(club.getCity());
-        clubResponse.setComment(club.getComment());
         clubResponse.setLogo(club.getLogo());
+        clubResponse.setState(club.getState());
+        clubResponse.setReviews(club.getReviews());
+        clubResponse.setStreet(club.getStreet());
+        clubResponse.setHomeNumber(club.getHomeNumber());
         clubResponse.setDescription(club.getDescription());
         clubResponse.setManagerName(club.getManagerName());
         clubResponse.setPhoneNumber(club.getPhoneNumber());
-        clubResponse.setReview(club.getReview());
-        clubResponse.setUserId(club.getUserId());
         return clubResponse;
     }
 
@@ -100,14 +108,15 @@ public class ClubService {
                 .id(club.getId())
                 .clubName(club.getClubName())
                 .description(club.getDescription())
-                .comment(club.getComment())
-                .userId(club.getUser().getId())
                 .phoneNumber(club.getPhoneNumber())
                 .city(club.getCity())
                 .logo(club.getLogo())
-                .review(club.getReview())
+                .homeNumber(club.getHomeNumber())
+                .state(club.getState())
+                .street(club.getStreet())
                 .phoneNumber(club.getPhoneNumber())
                 .managerName(club.getManagerName())
+                .reviews(club.getReviews())
                 .build();
     }
 }

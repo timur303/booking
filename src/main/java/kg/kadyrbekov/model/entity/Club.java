@@ -3,13 +3,14 @@ package kg.kadyrbekov.model.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.enums.City;
+import kg.kadyrbekov.model.enums.StarRating;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.*;
 
 import static javax.persistence.CascadeType.*;
 
@@ -20,7 +21,6 @@ import static javax.persistence.CascadeType.*;
 @Entity
 @Table(name = "clubs")
 public class Club {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,9 +35,16 @@ public class Club {
 
     private String logo;
 
-    private String review;
+    private Long showing;
 
-    private String comment;
+    private String state;
+
+    private String street;
+
+    private String homeNumber;
+
+    @OneToMany(mappedBy = "club")
+    private List<Photo> photos = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private City city;
@@ -57,6 +64,9 @@ public class Club {
 
     @Transient
     private Long userId;
+
+    @OneToMany(mappedBy = "club")
+    private List<Review> reviews;
 
     @Transient
     private Long cabinId;

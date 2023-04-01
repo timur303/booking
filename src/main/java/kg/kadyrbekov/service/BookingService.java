@@ -26,7 +26,6 @@ public class BookingService {
     private final Map<Long, Thread> runningTimers = new ConcurrentHashMap<>();
     private final CabinRepository cabinRepository;
     private final BookingRepository bookingRepository;
-
     private final ComputerRepository computerRepository;
     private final UserRepository userRepository;
 
@@ -37,35 +36,6 @@ public class BookingService {
         this.userRepository = userRepository;
     }
 
-    public Booking bookCabin(Long cabinId, int hour, int minute) throws InterruptedException {
-        User user = getPrinciple();
-        Cabin cabin = cabinRepository.findById(cabinId).orElseThrow(() -> new NotFoundException("Cabin with id not found " + cabinId));
-        if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
-            throw new RuntimeException("Cabin already booked");
-        } else if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
-            Booking booking = new Booking();
-            booking.setCreatedAt(LocalDateTime.now());
-            booking.setEndAt(LocalDateTime.now());
-            booking.setCabin(cabin);
-            booking.setUser(user);
-            bookingRepository.save(booking);
-            cabin.setClubStatus(ClubStatus.BOOKED);
-            cabinRepository.save(cabin);
-            Thread thread = new Thread(() -> {
-                try {
-                    countdown(hour, minute);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                cabin.setClubStatus(ClubStatus.NOT_BOOKED);
-                cabinRepository.save(cabin);
-            });
-            thread.start();
-            return booking;
-        } else {
-            throw new RuntimeException("Cabin status not supported");
-        }
-    }
 
     public void cancelBooking(Long cabinId) {
         Thread thread = runningTimers.get(cabinId);
@@ -81,46 +51,7 @@ public class BookingService {
         }
     }
 
-    public Booking bookCabins(Long cabinId, int hour, int minute) throws InterruptedException {
-        User user = getPrinciple();
-        Cabin cabin = cabinRepository.findById(cabinId).orElseThrow(() -> new NotFoundException("Cabin with id not found " + cabinId));
-        if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
-            throw new RuntimeException("Cabin already booked");
-        } else if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
-            Booking booking = new Booking();
-            booking.setCreatedAt(LocalDateTime.now());
-            booking.setCabin(cabin);
-            booking.setUser(user);
-            bookingRepository.save(booking);
-            cabin.setClubStatus(ClubStatus.BOOKED);
-            cabinRepository.save(cabin);
 
-            int seconds = 0;
-            double totalSeconds = hour * 3600 + minute * 60 + seconds;
-            while (totalSeconds > 0) {
-                int remainingHours = (int) (totalSeconds / 3600);
-                int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
-                int remainingSeconds = (int) (totalSeconds % 60);
-                System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
-                Thread.sleep(1000);
-                totalSeconds--;
-            }
-            System.out.println("Time's up!");
-            cabin.setClubStatus(ClubStatus.NOT_BOOKED);
-            cabinRepository.save(cabin);
-
-            double cost = (minute / 60.0) * cabin.getPrice();
-            System.out.println("Your check " + cost + " $ ");
-            booking.setCost(cost);
-            booking.setMinutes(minute);
-            booking.setEndAt(LocalDateTime.now());
-            bookingRepository.save(booking);
-
-            return booking;
-        } else {
-            throw new RuntimeException("Cabin status not supported");
-        }
-    }
 
     public Booking bookCabins1(BookingRequest bookingRequest, Long id) throws InterruptedException {
         User user = getPrinciple();
@@ -151,6 +82,7 @@ public class BookingService {
                 Thread.sleep(1000);
                 totalSeconds--;
             }
+
             System.out.println("Time's up!");
             cabin.setClubStatus(ClubStatus.NOT_BOOKED);
             cabinRepository.save(cabin);

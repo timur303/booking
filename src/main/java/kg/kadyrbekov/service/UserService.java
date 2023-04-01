@@ -34,10 +34,8 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setAge(request.getAge());
         user.setPassword(request.getPassword());
-        if (user.getFirstName().equals("Timur")) {
-            user.setRole(Role.ADMIN);
-        } else if (user.getFirstName().equals("Zukh")) {
-                user.setRole(Role.MANAGER);
+        if (user.getEmail().equals("timur@gmail.com")) {
+            user.setRole((Role.ADMIN));
         } else {
             user.setRole(Role.USER);
         }
@@ -56,4 +54,5 @@ public class UserService {
                 .password(user.getPassword())
                 .build();
     }
+
 }

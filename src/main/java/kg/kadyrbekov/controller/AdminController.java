@@ -4,16 +4,24 @@ package kg.kadyrbekov.controller;
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.service.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
+@PreAuthorize("hasAnyAuthority('ADMIN')")
 public class AdminController {
 
     private final AdminService adminService;
 
+    @PostMapping("/{email}/roles/manager")
+    public ResponseEntity<Void> assignManagerRole(@PathVariable("email") String userEmail) {
+        adminService.givesRoles(userEmail);
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("/{userId}/block")
     public String blockUser(@PathVariable Long userId) {
@@ -38,7 +46,6 @@ public class AdminController {
         adminService.deleteUserById(id);
         return "Successful removed " + id;
     }
-
 
 }
 

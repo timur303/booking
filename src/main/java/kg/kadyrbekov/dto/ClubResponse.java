@@ -1,11 +1,13 @@
 package kg.kadyrbekov.dto;
 
-import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.entity.Review;
 import kg.kadyrbekov.model.enums.City;
+import kg.kadyrbekov.model.enums.StarRating;
 import lombok.*;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,13 +28,15 @@ public class ClubResponse {
 
     private String logo;
 
-    private String review;
-
-    private String comment;
-
     @Enumerated(EnumType.STRING)
     private City city;
 
+    private List<Review> reviews;
 
-    private Long userId;
+    private String state;
+
+    private String street;
+
+    private String homeNumber;
+
 }

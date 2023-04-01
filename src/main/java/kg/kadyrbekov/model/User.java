@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import kg.kadyrbekov.model.entity.Booking;
 import kg.kadyrbekov.model.entity.Cabin;
 import kg.kadyrbekov.model.entity.Club;
+import kg.kadyrbekov.model.entity.Review;
 import kg.kadyrbekov.model.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,6 +51,14 @@ public class User implements UserDetails {
     private String avatar;
 
     private boolean blocked;
+
+    @OneToMany(mappedBy = "user")
+    private List<Review> reviews;
+
+    @ElementCollection(targetClass = Role.class)
+    @Enumerated(EnumType.STRING)
+    private List<Role> roles;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -74,7 +84,6 @@ public class User implements UserDetails {
         return grantedAuthorities;
     }
 
-
     @Override
     public String getUsername() {
         return email;
@@ -98,5 +107,13 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+        if (roles == null) {
+            roles = new ArrayList<>();
+        }
+        roles.add(role);
     }
 }
