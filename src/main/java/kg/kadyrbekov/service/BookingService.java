@@ -52,11 +52,10 @@ public class BookingService {
     }
 
 
-
-    public Booking bookCabins1(BookingRequest bookingRequest, Long id) throws InterruptedException {
+    public Booking bookCabins(BookingRequest bookingRequest, Long cabinId) throws InterruptedException {
         User user = getPrinciple();
-        Cabin cabin = cabinRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Cabin with id not found " + bookingRequest.getCabinId()));
+        Cabin cabin = cabinRepository.findById(cabinId)
+                .orElseThrow(() -> new NotFoundException("Cabin with id not found " + cabinId));
         if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
             throw new RuntimeException("Cabin already booked");
         } else if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
@@ -64,8 +63,8 @@ public class BookingService {
             booking.setCreatedAt(LocalDateTime.now());
             booking.setCabin(cabin);
             booking.setUser(user);
-            booking.setCabinId(bookingRequest.getCabinId());
-            booking.setUserId(bookingRequest.getUserId());
+            booking.setCabinId(cabinId);
+            booking.setUserId(user.getId());
             bookingRepository.save(booking);
             cabin.setClubStatus(ClubStatus.BOOKED);
             cabinRepository.save(cabin);
@@ -76,21 +75,21 @@ public class BookingService {
                 int remainingHours = (int) (totalSeconds / 3600);
                 int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
                 int remainingSeconds = (int) (totalSeconds % 60);
-                String remainingTime = String.format("%02d:%02d:%02d", remainingHours, remainingMinutes, remainingSeconds);
-                booking.setRemainingTime(remainingTime);
                 System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
-                Thread.sleep(1000);
+//                Thread.sleep(1000);
                 totalSeconds--;
             }
 
             System.out.println("Time's up!");
             cabin.setClubStatus(ClubStatus.NOT_BOOKED);
             cabinRepository.save(cabin);
-
             double cost = (bookingRequest.getMinutes() / 60.0) * cabin.getPrice();
+
+
             String costInfo = "Your check " + cost + " $ ";
             booking.setCost(cost);
             booking.setMinutes(bookingRequest.getMinutes());
+            booking.setHours(bookingRequest.getHours());
             booking.setEndAt(LocalDateTime.now());
             booking.setResponse(costInfo);
             bookingRepository.save(booking);
@@ -100,45 +99,60 @@ public class BookingService {
         } else {
             throw new RuntimeException("Cabin status not supported");
         }
+
     }
 
-    public BookingResponse bookComps(Long compId, int hour, int minute) throws InterruptedException {
+    public Booking bookComps(BookingRequest bookingRequest, Long compId) throws InterruptedException {
         User user = getPrinciple();
-        Computer computer = computerRepository.findById(compId).orElseThrow(() -> new NotFoundException("Computer with id not found " + compId));
+        Computer computer = computerRepository.findById(compId)
+                .orElseThrow(() -> new NotFoundException("Computer with id not found " + compId));
         if (computer.getClubStatus().equals(ClubStatus.BOOKED)) {
-            throw new RuntimeException("Computer already booked");
+            throw new RuntimeException("Cabin already booked");
         } else if (computer.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
             Booking booking = new Booking();
             booking.setCreatedAt(LocalDateTime.now());
             booking.setComputer(computer);
             booking.setUser(user);
+            booking.setComputerId(compId);
+            booking.setUserId(user.getId());
             bookingRepository.save(booking);
             computer.setClubStatus(ClubStatus.BOOKED);
             computerRepository.save(computer);
 
-
             int seconds = 0;
-            double totalSeconds = hour * 3600 + minute * 60 + seconds;
+            double totalSeconds = bookingRequest.getHours() * 3600 + bookingRequest.getMinutes() * 60 + seconds;
             while (totalSeconds > 0) {
                 int remainingHours = (int) (totalSeconds / 3600);
                 int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
                 int remainingSeconds = (int) (totalSeconds % 60);
                 System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
-                Thread.sleep(1000);
+//                Thread.sleep(1000);
                 totalSeconds--;
             }
+
             System.out.println("Time's up!");
             computer.setClubStatus(ClubStatus.NOT_BOOKED);
             computerRepository.save(computer);
 
-            double cost = (minute / 60.0) * computer.getPrice();
-            System.out.println("Your check " + cost + " $ ");
-            booking.setCost(cost);
-            booking.setMinutes(minute);
+            double costM = (bookingRequest.getMinutes() / 60.0) * computer.getPrice();
+            double hourlyRate = computer.getPrice();
+            double totalCost = costM + hourlyRate * bookingRequest.getHours();
+
+            int hours = bookingRequest.getHours();
+            int minutes = bookingRequest.getMinutes();
+            String costInfoM = "Your check " + totalCost + " $ for " + hours + " hour" + (hours > 1 ? "s" : "") + " and " + minutes + " minute" + (minutes > 1 ? "s" : "") + ".";
+            booking.setCost(totalCost);
+            booking.setMinutes(minutes);
+            booking.setHours(hours);
             booking.setEndAt(LocalDateTime.now());
+            booking.setResponse(costInfoM);
+
             bookingRepository.save(booking);
 
-            return bookingResponse(booking);
+
+            bookingRepository.save(booking);
+            return booking;
+
         } else {
             throw new RuntimeException("Computer status not supported");
         }
@@ -165,6 +179,7 @@ public class BookingService {
         Booking booking = bookingRepository.findById(1L).get();
         booking.setCost(cost);
         booking.setMinutes(minutes);
+        booking.setHours(hours);
         bookingRepository.save(booking);
 
     }

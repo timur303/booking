@@ -22,8 +22,6 @@ public class CabinRequest {
 
     private User user;
 
-    private Long userId;
-
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;
 

@@ -19,7 +19,7 @@ public class BookingRequest {
     @CreatedDate
     private LocalDateTime endAt;
 
-    private double hours;
+    private int hours;
 
     private int minutes;
 
@@ -27,15 +27,8 @@ public class BookingRequest {
 
     private Cabin cabin;
 
-    private Long cabinId;
-
     private Computer computer;
 
-    private Long computerId;
-
     private User user;
-
-    Long userId;
-
 }
 

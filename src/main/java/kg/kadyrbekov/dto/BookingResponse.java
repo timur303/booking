@@ -21,17 +21,6 @@ public class BookingResponse {
 
     private String message;
 
-    public BookingResponse(String messages) {
-        this.messages = messages;
-    }
-
-    private String messages;
-
-    public BookingResponse(String message, Booking booking) {
-        this.message = message;
-        this.booking = booking;
-    }
-
     private Booking booking;
 
     private Long id;
@@ -42,7 +31,7 @@ public class BookingResponse {
     @CreatedDate
     private LocalDateTime endAt;
 
-    private double hours;
+    private int hours;
 
     private int minutes;
 

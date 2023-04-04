@@ -15,8 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -41,6 +39,7 @@ public class ReviewService {
         review.setClub(club);
         review.setClubId(clubId);
         review.setUser(user);
+
         reviewRepository.save(review);
         return response(review);
 
@@ -71,6 +70,7 @@ public class ReviewService {
         response.setReview(review.getReview());
         response.setStarRating(review.getStarRating());
         response.setClubId(review.getClubId());
+
         return response;
     }
 

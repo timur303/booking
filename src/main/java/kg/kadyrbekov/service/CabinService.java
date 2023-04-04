@@ -1,18 +1,17 @@
 package kg.kadyrbekov.service;
-
 import kg.kadyrbekov.dto.CabinRequest;
 import kg.kadyrbekov.dto.CabinResponse;
+import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.entity.Cabin;
 import kg.kadyrbekov.model.entity.Club;
-import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.repository.CabinRepository;
 import kg.kadyrbekov.repository.ClubRepository;
 import kg.kadyrbekov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,16 +24,24 @@ public class CabinService {
     private final ClubRepository clubRepository;
 
     public CabinResponse create(CabinRequest request) {
-        User user = new User();
+        User user = getAuthentication();
         Club club = findByIdClub(request.getClubId());
         Cabin cabin = mapToEntity(request);
         cabin.setClub(club);
         cabin.setClubId(request.getClubId());
-        request.setUser(user);
+        cabin.setUser(user);
+        cabin.setUserId(user.getId());
         club.setCabins(cabin.getClub().getCabins());
         cabinRepository.save(cabin);
 
-        return cabinResponse(cabin);
+        return mapToResponse(cabin);
+    }
+
+    public User getAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new NotFoundException("User with email not found"));
     }
 
     public CabinResponse update(CabinRequest request, Long id) {
@@ -63,17 +70,14 @@ public class CabinService {
     }
 
     public Cabin mapToEntity(CabinRequest request) {
-        Optional<User> user = Optional.of(userRepository.findById(request.getUserId()).
-                orElseThrow(()->new NotFoundException("User with id not found")));
         Cabin cabin = new Cabin();
-        cabin.setUser(user.get());
-        cabin.setUserId(request.getUserId());
         cabin.setName(request.getName());
         cabin.setPrice(request.getPrice());
         cabin.setDescription(request.getDescription());
         cabin.setClubId(request.getClubId());
         cabin.setImage(request.getImage());
         cabin.setClubStatus(request.getClubStatus());
+        cabin.setUser(request.getUser());
 
         return cabin;
     }
@@ -90,6 +94,7 @@ public class CabinService {
         cabinResponse.setName(cabin.getName());
         cabinResponse.setDescription(cabin.getDescription());
         cabinResponse.setClubStatus(cabin.getClubStatus());
+        cabinResponse.setUserId(cabin.getUserId());
 
         return cabinResponse;
     }

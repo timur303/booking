@@ -23,8 +23,6 @@ public class ComputerRequest {
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;
 
-    private Long userId;
-
     private User user;
 
     private Long clubId;

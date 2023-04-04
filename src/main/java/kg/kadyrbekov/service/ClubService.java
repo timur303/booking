@@ -24,6 +24,7 @@ public class ClubService {
         User user = getAuthentication();
         Club club = mapToEntity(request);
         club.setUser(user);
+        club.setUserId(user.getId());
         clubRepository.save(club);
         return mapToResponse(club);
     }
@@ -88,12 +89,12 @@ public class ClubService {
         clubResponse.setCity(club.getCity());
         clubResponse.setLogo(club.getLogo());
         clubResponse.setState(club.getState());
-        clubResponse.setReviews(club.getReviews());
         clubResponse.setStreet(club.getStreet());
         clubResponse.setHomeNumber(club.getHomeNumber());
         clubResponse.setDescription(club.getDescription());
         clubResponse.setManagerName(club.getManagerName());
         clubResponse.setPhoneNumber(club.getPhoneNumber());
+        clubResponse.setUserId(club.getUserId());
         return clubResponse;
     }
 
@@ -116,7 +117,6 @@ public class ClubService {
                 .street(club.getStreet())
                 .phoneNumber(club.getPhoneNumber())
                 .managerName(club.getManagerName())
-                .reviews(club.getReviews())
                 .build();
     }
 }

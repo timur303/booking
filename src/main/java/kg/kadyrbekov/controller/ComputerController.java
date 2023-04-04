@@ -17,7 +17,7 @@ public class ComputerController {
     private final ComputerService computerService;
 
     @PostMapping
-    public ComputerResponse save(@RequestBody ComputerRequest request) {
+    public ComputerResponse create(@RequestBody ComputerRequest request) {
         return computerService.create(request);
     }
 

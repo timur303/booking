@@ -30,13 +30,11 @@ public class Booking {
     @CreatedDate
     private LocalDateTime endAt;
 
-    private double hours;
+    private int hours;
 
     private int minutes;
 
     private double cost;
-
-    private String remainingTime;
 
     private String response;
 

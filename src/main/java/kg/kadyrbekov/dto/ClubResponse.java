@@ -31,12 +31,11 @@ public class ClubResponse {
     @Enumerated(EnumType.STRING)
     private City city;
 
-    private List<Review> reviews;
-
     private String state;
 
     private String street;
 
     private String homeNumber;
 
+    private Long userId;
 }

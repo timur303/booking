@@ -9,6 +9,8 @@ import kg.kadyrbekov.repository.ClubRepository;
 import kg.kadyrbekov.repository.ComputerRepository;
 import kg.kadyrbekov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
 
@@ -25,17 +27,25 @@ public class ComputerService {
     private final ClubRepository clubRepository;
 
     public ComputerResponse create(ComputerRequest request) {
-        User user = new User();
+        User user = getAuthentication();
         Club club = clubRepository.findById(request.getClubId()).orElseThrow(
-                ()->new NotFoundException("Club with id not found"));
+                () -> new NotFoundException("Club with id not found"));
         Computer computer = mapToEntity(request);
         computer.setClub(club);
         computer.setClubId(request.getClubId());
-        request.setUser(user);
+        computer.setUser(user);
+        computer.setUserId(user.getId());
         club.setComputers(computer.getClub().getComputers());
         computerRepository.save(computer);
 
-        return computerResponse(computer);
+        return mapToResponse(computer);
+    }
+
+    public User getAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new NotFoundException("User with email not found"));
     }
 
 
@@ -60,17 +70,14 @@ public class ComputerService {
     }
 
     public Computer mapToEntity(ComputerRequest request) {
-        Optional<User> user = Optional.of(userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new NotFoundException("User with id not found")));
         Computer computer = new Computer();
-        computer.setUser(user.get());
-        computer.setUserId(request.getUserId());
         computer.setName(request.getName());
         computer.setPrice(request.getPrice());
         computer.setClubStatus(request.getClubStatus());
         computer.setDescription(request.getDescription());
         computer.setClubId(request.getClubId());
         computer.setImage(request.getImage());
+        computer.setUser(request.getUser());
 
         return computer;
     }
@@ -84,10 +91,10 @@ public class ComputerService {
         response.setId(computer.getId());
         response.setClubId(computer.getClubId());
         response.setImage(computer.getImage());
-
         response.setName(computer.getName());
         response.setDescription(computer.getDescription());
         response.setClubStatus(computer.getClubStatus());
+        response.setUserId(computer.getUserId());
 
         return response;
     }

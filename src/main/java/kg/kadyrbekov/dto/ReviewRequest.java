@@ -19,8 +19,6 @@ public class ReviewRequest {
 
     private String review;
 
-//    private Long userId;
-
     private User user;
 
     private Club clubs;
