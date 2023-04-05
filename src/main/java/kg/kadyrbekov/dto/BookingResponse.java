@@ -5,6 +5,7 @@ import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.entity.Booking;
 import kg.kadyrbekov.model.entity.Cabin;
 import kg.kadyrbekov.model.entity.Computer;
+import kg.kadyrbekov.model.enums.Night;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -34,6 +35,11 @@ public class BookingResponse {
     private int hours;
 
     private int minutes;
+
+    @Enumerated(EnumType.STRING)
+    private Night night;
+
+    private int night1;
 
     private double cost;
 

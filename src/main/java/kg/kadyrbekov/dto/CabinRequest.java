@@ -2,6 +2,7 @@ package kg.kadyrbekov.dto;
 
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.enums.ClubStatus;
+import kg.kadyrbekov.model.enums.Night;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,6 +22,11 @@ public class CabinRequest {
     private double price;
 
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    private Night night;
+
+    private int night1;
 
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;

@@ -7,6 +7,7 @@ import kg.kadyrbekov.model.entity.Booking;
 import kg.kadyrbekov.model.entity.Cabin;
 import kg.kadyrbekov.model.entity.Computer;
 import kg.kadyrbekov.model.enums.ClubStatus;
+import kg.kadyrbekov.model.enums.Night;
 import kg.kadyrbekov.repository.BookingRepository;
 import kg.kadyrbekov.repository.CabinRepository;
 import kg.kadyrbekov.repository.ComputerRepository;
@@ -51,6 +52,54 @@ public class BookingService {
         }
     }
 
+    public Booking bookCabins1(BookingRequest bookingRequest, Long cabinId) throws InterruptedException {
+        User user = getPrinciple();
+        Cabin cabin = cabinRepository.findById(cabinId)
+                .orElseThrow(() -> new NotFoundException("Cabin with id not found " + cabinId));
+        if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
+            throw new RuntimeException("Cabin already booked");
+        } else if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
+            Booking booking = new Booking();
+            booking.setCreatedAt(LocalDateTime.now());
+            booking.setCabin(cabin);
+            booking.setUser(user);
+            booking.setCabinId(cabinId);
+            booking.setUserId(user.getId());
+            booking.setHours(bookingRequest.getHours());
+            booking.setMinutes(bookingRequest.getMinutes());
+            bookingRepository.save(booking);
+            cabin.setClubStatus(ClubStatus.BOOKED);
+            cabinRepository.save(cabin);
+
+            int seconds = 0;
+            double totalSeconds = bookingRequest.getHours() * 3600 + bookingRequest.getMinutes() * 60 + seconds;
+            while (totalSeconds > 0) {
+                int remainingHours = (int) (totalSeconds / 3600);
+                int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
+                int remainingSeconds = (int) (totalSeconds % 60);
+                System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
+//                Thread.sleep(1000);
+                totalSeconds--;
+            }
+
+            System.out.println("Time's up!");
+            cabin.setClubStatus(ClubStatus.NOT_BOOKED);
+            cabinRepository.save(cabin);
+            double cost = (bookingRequest.getMinutes() / 60.0) * cabin.getPrice() + (bookingRequest.getHours() * cabin.getPrice());
+
+            String costInfo = "Your check " + cost + " $ ";
+            booking.setCost(cost);
+            booking.setEndAt(LocalDateTime.now());
+            booking.setResponse(costInfo);
+            bookingRepository.save(booking);
+
+            return booking;
+        } else {
+            throw new RuntimeException("Cabin status not supported");
+        }
+
+    }
+
 
     public Booking bookCabins(BookingRequest bookingRequest, Long cabinId) throws InterruptedException {
         User user = getPrinciple();
@@ -83,14 +132,17 @@ public class BookingService {
             System.out.println("Time's up!");
             cabin.setClubStatus(ClubStatus.NOT_BOOKED);
             cabinRepository.save(cabin);
-            double cost = (bookingRequest.getMinutes() / 60.0) * cabin.getPrice();
 
+            Night night = Night.NIGHT;
+            double cost = (bookingRequest.getMinutes() / 60.0) * cabin.getPrice() + (bookingRequest.getHours() * cabin.getPrice());
 
             String costInfo = "Your check " + cost + " $ ";
             booking.setCost(cost);
+            booking.setNight1(cabin.getNight1());
             booking.setMinutes(bookingRequest.getMinutes());
             booking.setHours(bookingRequest.getHours());
             booking.setEndAt(LocalDateTime.now());
+            booking.setNight(bookingRequest.getNight());
             booking.setResponse(costInfo);
             bookingRepository.save(booking);
 

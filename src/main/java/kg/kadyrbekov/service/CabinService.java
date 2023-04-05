@@ -1,4 +1,5 @@
 package kg.kadyrbekov.service;
+
 import kg.kadyrbekov.dto.CabinRequest;
 import kg.kadyrbekov.dto.CabinResponse;
 import kg.kadyrbekov.model.User;
@@ -78,7 +79,8 @@ public class CabinService {
         cabin.setImage(request.getImage());
         cabin.setClubStatus(request.getClubStatus());
         cabin.setUser(request.getUser());
-
+//        cabin.setNight(request.getNight());
+        cabin.setNight1(request.getNight1());
         return cabin;
     }
 
@@ -95,6 +97,8 @@ public class CabinService {
         cabinResponse.setDescription(cabin.getDescription());
         cabinResponse.setClubStatus(cabin.getClubStatus());
         cabinResponse.setUserId(cabin.getUserId());
+        cabinResponse.setNight(cabin.getNight());
+        cabinResponse.setNight1(cabin.getNight1());
 
         return cabinResponse;
     }

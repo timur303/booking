@@ -2,6 +2,7 @@ package kg.kadyrbekov.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.enums.Night;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,6 +46,10 @@ public class Booking {
     @Transient
     private Long cabinId;
 
+    @Enumerated(EnumType.STRING)
+    private Night night;
+
+    private int night1;
 
     @OneToOne
     @JoinColumn(name = "computer_id")
