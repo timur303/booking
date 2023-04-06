@@ -133,17 +133,18 @@ public class BookingService {
             cabin.setClubStatus(ClubStatus.NOT_BOOKED);
             cabinRepository.save(cabin);
 
-            Night night = Night.NIGHT;
-            double cost = (bookingRequest.getMinutes() / 60.0) * cabin.getPrice() + (bookingRequest.getHours() * cabin.getPrice());
 
+            double cost = (bookingRequest.getMinutes() / 60.0) * cabin.getPrice() +
+                    (bookingRequest.getHours() * cabin.getPrice() +
+                            (bookingRequest.getNight().getHours() * cabin.getPriceNight()));
             String costInfo = "Your check " + cost + " $ ";
             booking.setCost(cost);
-            booking.setNight1(cabin.getNight1());
             booking.setMinutes(bookingRequest.getMinutes());
             booking.setHours(bookingRequest.getHours());
             booking.setEndAt(LocalDateTime.now());
             booking.setNight(bookingRequest.getNight());
             booking.setResponse(costInfo);
+
             bookingRepository.save(booking);
 
             return booking;
@@ -186,21 +187,16 @@ public class BookingService {
             computer.setClubStatus(ClubStatus.NOT_BOOKED);
             computerRepository.save(computer);
 
-            double costM = (bookingRequest.getMinutes() / 60.0) * computer.getPrice();
-            double hourlyRate = computer.getPrice();
-            double totalCost = costM + hourlyRate * bookingRequest.getHours();
+            double cost = (bookingRequest.getMinutes() / 60.0) * computer.getPrice() +
+                    (bookingRequest.getHours() * computer.getPrice()) +
+                    (bookingRequest.getNight().getHours() * computer.getNightPrice());
 
-            int hours = bookingRequest.getHours();
-            int minutes = bookingRequest.getMinutes();
-            String costInfoM = "Your check " + totalCost + " $ for " + hours + " hour" + (hours > 1 ? "s" : "") + " and " + minutes + " minute" + (minutes > 1 ? "s" : "") + ".";
-            booking.setCost(totalCost);
-            booking.setMinutes(minutes);
-            booking.setHours(hours);
+            String costInfoM = "Your check " + cost + " $";
+            booking.setCost(cost);
+            booking.setMinutes(bookingRequest.getMinutes());
+            booking.setHours(bookingRequest.getHours());
             booking.setEndAt(LocalDateTime.now());
             booking.setResponse(costInfoM);
-
-            bookingRepository.save(booking);
-
 
             bookingRepository.save(booking);
             return booking;

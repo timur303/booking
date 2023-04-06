@@ -79,8 +79,7 @@ public class CabinService {
         cabin.setImage(request.getImage());
         cabin.setClubStatus(request.getClubStatus());
         cabin.setUser(request.getUser());
-//        cabin.setNight(request.getNight());
-        cabin.setNight1(request.getNight1());
+        cabin.setPriceNight(request.getNightPrice());
         return cabin;
     }
 
@@ -98,7 +97,7 @@ public class CabinService {
         cabinResponse.setClubStatus(cabin.getClubStatus());
         cabinResponse.setUserId(cabin.getUserId());
         cabinResponse.setNight(cabin.getNight());
-        cabinResponse.setNight1(cabin.getNight1());
+        cabinResponse.setNightPrice(cabin.getPriceNight());
 
         return cabinResponse;
     }

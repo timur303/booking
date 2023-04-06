@@ -1,6 +1,7 @@
 package kg.kadyrbekov.dto;
 
 import kg.kadyrbekov.model.enums.ClubStatus;
+import kg.kadyrbekov.model.enums.Night;
 import lombok.*;
 
 import javax.persistence.EnumType;
@@ -18,6 +19,11 @@ public class ComputerResponse {
     private String name;
 
     private String image;
+
+    @Enumerated(EnumType.STRING)
+    private Night night;
+
+    private double nightPrice;
 
     private String description;
 

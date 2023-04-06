@@ -20,11 +20,10 @@ public class CabinResponse {
 
     private String image;
 
-
     @Enumerated(EnumType.STRING)
     private Night night;
 
-    private int night1;
+    private double nightPrice;
 
     private String description;
 

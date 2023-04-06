@@ -26,7 +26,7 @@ public class CabinRequest {
     @Enumerated(EnumType.STRING)
     private Night night;
 
-    private int night1;
+    private double nightPrice;
 
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;

@@ -10,6 +10,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -35,11 +36,6 @@ public class BookingResponse {
     private int hours;
 
     private int minutes;
-
-    @Enumerated(EnumType.STRING)
-    private Night night;
-
-    private int night1;
 
     private double cost;
 

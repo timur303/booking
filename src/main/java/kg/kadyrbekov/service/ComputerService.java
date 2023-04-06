@@ -78,6 +78,7 @@ public class ComputerService {
         computer.setClubId(request.getClubId());
         computer.setImage(request.getImage());
         computer.setUser(request.getUser());
+        computer.setNightPrice(request.getNightPrice());
 
         return computer;
     }
@@ -95,6 +96,8 @@ public class ComputerService {
         response.setDescription(computer.getDescription());
         response.setClubStatus(computer.getClubStatus());
         response.setUserId(computer.getUserId());
+        response.setNightPrice(computer.getNightPrice());
+        response.setNight(computer.getNight());
 
         return response;
     }

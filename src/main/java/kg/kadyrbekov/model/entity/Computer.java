@@ -3,6 +3,7 @@ package kg.kadyrbekov.model.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.enums.ClubStatus;
+import kg.kadyrbekov.model.enums.Night;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,13 +33,18 @@ public class Computer {
 
     private double price;
 
+    private double nightPrice;
+
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;
+
+    @Enumerated(EnumType.STRING)
+    private Night night;
 
     @OneToOne(cascade = CascadeType.ALL)
     private Booking booking;
 
-    @ManyToOne(cascade = {DETACH,PERSIST,MERGE,REFRESH} ,fetch = FetchType.LAZY)
+    @ManyToOne(cascade = {DETACH, PERSIST, MERGE, REFRESH}, fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id")
     private Club club;
     @Transient

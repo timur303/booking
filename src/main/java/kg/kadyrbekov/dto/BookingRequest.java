@@ -29,8 +29,6 @@ public class BookingRequest {
     @Enumerated(EnumType.STRING)
     private Night night;
 
-    private int night1;
-
     private double cost;
 
     private Cabin cabin;

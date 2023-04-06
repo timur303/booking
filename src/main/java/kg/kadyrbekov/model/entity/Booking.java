@@ -49,8 +49,6 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     private Night night;
 
-    private int night1;
-
     @OneToOne
     @JoinColumn(name = "computer_id")
     private Computer computer;
