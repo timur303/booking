@@ -15,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -30,7 +32,7 @@ public class ReviewService {
                 -> new NotFoundException(String.format("User with id not found", userId)));
     }
 
-    public ReviewResponse create(ReviewRequest request,Long clubId) {
+    public ReviewResponse create(ReviewRequest request, Long clubId) {
         User user = getAuthentication();
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new NotFoundException("Club with id not found"));
@@ -39,16 +41,38 @@ public class ReviewService {
         review.setClub(club);
         review.setClubId(clubId);
         review.setUser(user);
-
         reviewRepository.save(review);
         return response(review);
 
+    }
+
+    public ReviewResponse update(ReviewRequest request, Long id) {
+        Review review = findByIdReview(id);
+        review.setReview(request.getReview());
+        review.setStarRating(request.getStarRating());
+
+        reviewRepository.save(review);
+        return mapToResponse(review);
+    }
+
+    public void deleteById(Long id) {
+        Review review = findByIdReview(id);
+        reviewRepository.delete(review);
+    }
+
+    public List<Review> getAll() {
+        return reviewRepository.findAll();
     }
 
     public User getAuthentication() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         return userRepository.findByEmail(email).get();
+    }
+
+    public Review findByIdReview(Long id) {
+        return reviewRepository.findById(id).orElseThrow(()
+                -> new NotFoundException(String.format("Review with id not found", id)));
     }
 
     public Review mapToEntity(ReviewRequest request) {

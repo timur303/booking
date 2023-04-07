@@ -197,6 +197,7 @@ public class BookingService {
             booking.setHours(bookingRequest.getHours());
             booking.setEndAt(LocalDateTime.now());
             booking.setResponse(costInfoM);
+            booking.setNight(bookingRequest.getNight());
 
             bookingRepository.save(booking);
             return booking;

@@ -2,12 +2,9 @@ package kg.kadyrbekov.controller;
 
 import kg.kadyrbekov.dto.ReviewRequest;
 import kg.kadyrbekov.dto.ReviewResponse;
-import kg.kadyrbekov.model.entity.Review;
 import kg.kadyrbekov.service.ClubService;
 import kg.kadyrbekov.service.ReviewService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,4 +20,13 @@ public class ReviewsController {
         return reviewService.create(request, id);
     }
 
+    @PatchMapping("club/{id}")
+    public ReviewResponse update(@RequestBody ReviewRequest request, @PathVariable Long id) {
+        return reviewService.update(request, id);
+    }
+
+    @DeleteMapping("club/{id}")
+    public void deleteById(@PathVariable Long id) {
+        reviewService.deleteById(id);
+    }
 }

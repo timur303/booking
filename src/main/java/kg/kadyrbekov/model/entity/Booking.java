@@ -51,6 +51,7 @@ public class Booking {
 
     @OneToOne
     @JoinColumn(name = "computer_id")
+    @JsonIgnore
     private Computer computer;
     @Transient
     private Long computerId;
