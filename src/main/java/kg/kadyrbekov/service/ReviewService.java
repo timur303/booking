@@ -50,7 +50,6 @@ public class ReviewService {
         Review review = findByIdReview(id);
         review.setReview(request.getReview());
         review.setStarRating(request.getStarRating());
-
         reviewRepository.save(review);
         return mapToResponse(review);
     }

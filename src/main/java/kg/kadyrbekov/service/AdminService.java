@@ -32,6 +32,9 @@ public class AdminService {
 
     }
 
+    public List<User> getAll() {
+        return userRepository.findAll();
+    }
 
     public void givesRoles(String email) {
         User user = userRepository.findByEmail(email).get();

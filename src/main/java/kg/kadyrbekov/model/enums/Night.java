@@ -6,11 +6,11 @@ public enum Night {
 
     private final double night;
 
-    Night(int hours) {
-        this.night = hours;
+    Night(int count) {
+        this.night = count;
     }
 
-    public double getHours() {
+    public double getCount() {
         return night;
     }
 }

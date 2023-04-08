@@ -7,7 +7,6 @@ import kg.kadyrbekov.model.entity.Booking;
 import kg.kadyrbekov.model.entity.Cabin;
 import kg.kadyrbekov.model.entity.Computer;
 import kg.kadyrbekov.model.enums.ClubStatus;
-import kg.kadyrbekov.model.enums.Night;
 import kg.kadyrbekov.repository.BookingRepository;
 import kg.kadyrbekov.repository.CabinRepository;
 import kg.kadyrbekov.repository.ComputerRepository;
@@ -136,7 +135,7 @@ public class BookingService {
 
             double cost = (bookingRequest.getMinutes() / 60.0) * cabin.getPrice() +
                     (bookingRequest.getHours() * cabin.getPrice() +
-                            (bookingRequest.getNight().getHours() * cabin.getPriceNight()));
+                            (bookingRequest.getNight().getCount() * cabin.getPriceNight()));
             String costInfo = "Your check " + cost + " $ ";
             booking.setCost(cost);
             booking.setMinutes(bookingRequest.getMinutes());
@@ -189,7 +188,7 @@ public class BookingService {
 
             double cost = (bookingRequest.getMinutes() / 60.0) * computer.getPrice() +
                     (bookingRequest.getHours() * computer.getPrice()) +
-                    (bookingRequest.getNight().getHours() * computer.getNightPrice());
+                    (bookingRequest.getNight().getCount() * computer.getNightPrice());
 
             String costInfoM = "Your check " + cost + " $";
             booking.setCost(cost);

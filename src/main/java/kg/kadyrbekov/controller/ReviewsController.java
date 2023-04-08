@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/reviews")
 public class ReviewsController {
 
-    private final ClubService clubService;
     private final ReviewService reviewService;
 
     @PostMapping("club/{id}")

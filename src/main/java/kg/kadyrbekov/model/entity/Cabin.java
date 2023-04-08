@@ -33,9 +33,6 @@ public class Cabin {
 
     private double price;
 
-    @Enumerated(EnumType.STRING)
-    private Night night;
-
     private double priceNight;
 
     @Enumerated(EnumType.STRING)

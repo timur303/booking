@@ -38,9 +38,6 @@ public class Computer {
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;
 
-    @Enumerated(EnumType.STRING)
-    private Night night;
-
     @OneToOne(cascade = CascadeType.ALL)
     private Booking booking;
 

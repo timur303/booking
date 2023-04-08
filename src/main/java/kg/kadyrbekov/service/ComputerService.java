@@ -97,7 +97,6 @@ public class ComputerService {
         response.setClubStatus(computer.getClubStatus());
         response.setUserId(computer.getUserId());
         response.setNightPrice(computer.getNightPrice());
-        response.setNight(computer.getNight());
 
         return response;
     }

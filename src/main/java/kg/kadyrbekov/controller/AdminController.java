@@ -3,10 +3,14 @@ package kg.kadyrbekov.controller;
 
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.service.AdminService;
+import kg.kadyrbekov.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -15,12 +19,21 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasAnyAuthority('ADMIN')")
 public class AdminController {
 
+
+    private final UserService userService;
     private final AdminService adminService;
 
     @PostMapping("/{email}/roles/manager")
     public ResponseEntity<Void> assignManagerRole(@PathVariable("email") String userEmail) {
         adminService.givesRoles(userEmail);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("")
+    public String listUsers(Model model) {
+        List<User> users = adminService.getAll();
+        model.addAttribute("users", users);
+        return "login";
     }
 
     @PostMapping("/{userId}/block")

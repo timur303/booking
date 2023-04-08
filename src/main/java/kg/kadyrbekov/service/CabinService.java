@@ -33,6 +33,9 @@ public class CabinService {
         cabin.setUser(user);
         cabin.setUserId(user.getId());
         club.setCabins(cabin.getClub().getCabins());
+        if (club.getManagerName().isEmpty()) {
+            throw new RuntimeException("You can't add your cabin");
+        }
         cabinRepository.save(cabin);
 
         return mapToResponse(cabin);
@@ -96,7 +99,6 @@ public class CabinService {
         cabinResponse.setDescription(cabin.getDescription());
         cabinResponse.setClubStatus(cabin.getClubStatus());
         cabinResponse.setUserId(cabin.getUserId());
-        cabinResponse.setNight(cabin.getNight());
         cabinResponse.setNightPrice(cabin.getPriceNight());
 
         return cabinResponse;
