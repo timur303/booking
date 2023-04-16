@@ -1,6 +1,7 @@
 package kg.kadyrbekov.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.ApiModel;
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.enums.StarRating;
 import lombok.AllArgsConstructor;
@@ -15,7 +16,8 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "review")
+@Table(name = "reviews")
+@ApiModel(description = "The model representing a Review")
 public class Review {
 
     @Id
@@ -37,7 +39,13 @@ public class Review {
 
     @ManyToOne
     private Club club;
+
     @Transient
     private Long clubId;
 
+    @ManyToOne
+    private SportComplex sportComplex;
+
+    @Transient
+    private Long complexId;
 }

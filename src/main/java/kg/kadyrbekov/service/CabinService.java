@@ -2,9 +2,11 @@ package kg.kadyrbekov.service;
 
 import kg.kadyrbekov.dto.CabinRequest;
 import kg.kadyrbekov.dto.CabinResponse;
+import kg.kadyrbekov.exception.NotFoundException;
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.entity.Cabin;
 import kg.kadyrbekov.model.entity.Club;
+import kg.kadyrbekov.model.enums.Role;
 import kg.kadyrbekov.repository.CabinRepository;
 import kg.kadyrbekov.repository.ClubRepository;
 import kg.kadyrbekov.repository.UserRepository;
@@ -12,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.webjars.NotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -24,53 +25,61 @@ public class CabinService {
 
     private final ClubRepository clubRepository;
 
-    public CabinResponse create(CabinRequest request) {
+    public CabinResponse create(CabinRequest request) throws NotFoundException {
         User user = getAuthentication();
-        Club club = findByIdClub(request.getClubId());
+        Club club = clubRepository.findById(request.getClubId()).orElseThrow(
+                () -> new NotFoundException("Club with id not found"));
         Cabin cabin = mapToEntity(request);
+        cabin.setUser(user);
         cabin.setClub(club);
         cabin.setClubId(request.getClubId());
-        cabin.setUser(user);
         cabin.setUserId(user.getId());
         club.setCabins(cabin.getClub().getCabins());
+        String trimmedName = request.getName().trim();
+        if (cabinRepository.existsByClubAndName(club, trimmedName)) {
+            throw new RuntimeException("Cabin with the given name already exists");
+        }
         if (club.getManagerName().isEmpty()) {
             throw new RuntimeException("You can't add your cabin");
+        }
+        if (!user.getRole().equals(Role.ADMIN)) {
+            if (!club.getClubManagerId().equals(user.getManagerId())) {
+                throw new RuntimeException("You cannot add a cabin to another club");
+            }
         }
         cabinRepository.save(cabin);
 
         return mapToResponse(cabin);
     }
 
-    public User getAuthentication() {
+    public User getAuthentication() throws NotFoundException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         return userRepository.findByEmail(email).orElseThrow(
                 () -> new NotFoundException("User with email not found"));
     }
 
-    public CabinResponse update(CabinRequest request, Long id) {
+    public CabinResponse update(CabinRequest request, Long id) throws NotFoundException {
         Cabin cabin = findByIdCabin(id);
         cabin.setName(request.getName());
         cabin.setDescription(request.getDescription());
         cabin.setPrice(request.getPrice());
-        cabin.setClubId(request.getClubId());
+        cabin.setNightPrice(request.getNightPrice());
+        cabin.setImage(request.getImage());
         cabinRepository.save(cabin);
         return cabinResponse(cabin);
     }
 
-    public void deleteById(Long id) {
+
+    public void deleteByIdCabin(Long id) throws NotFoundException {
         Cabin cabin = findByIdCabin(id);
         cabinRepository.delete(cabin);
     }
 
-    public Club findByIdClub(Long clubId) {
-        return clubRepository.findById(clubId).orElseThrow(
-                () -> new NotFoundException(String.format("Club with id not found ", clubId)));
-    }
 
-    public Cabin findByIdCabin(Long cabinId) {
+    public Cabin findByIdCabin(Long cabinId) throws NotFoundException {
         return cabinRepository.findById(cabinId).orElseThrow(
-                () -> new NotFoundException(String.format("Cabin with id not found ", cabinId)));
+                () -> new NotFoundException(("Cabin with id not found")));
     }
 
     public Cabin mapToEntity(CabinRequest request) {
@@ -82,24 +91,22 @@ public class CabinService {
         cabin.setImage(request.getImage());
         cabin.setClubStatus(request.getClubStatus());
         cabin.setUser(request.getUser());
-        cabin.setPriceNight(request.getNightPrice());
+        cabin.setNightPrice(request.getNightPrice());
+
         return cabin;
     }
 
     public CabinResponse mapToResponse(Cabin cabin) {
-        if (cabin == null) {
-            return null;
-        }
         CabinResponse cabinResponse = new CabinResponse();
-        cabinResponse.setPrice(cabin.getPrice());
         cabinResponse.setId(cabin.getId());
         cabinResponse.setClubId(cabin.getClubId());
-        cabinResponse.setImage(cabin.getImage());
+        cabinResponse.setPrice(cabin.getPrice());
         cabinResponse.setName(cabin.getName());
+        cabinResponse.setImage(cabin.getImage());
         cabinResponse.setDescription(cabin.getDescription());
         cabinResponse.setClubStatus(cabin.getClubStatus());
         cabinResponse.setUserId(cabin.getUserId());
-        cabinResponse.setNightPrice(cabin.getPriceNight());
+        cabinResponse.setNightPrice(cabin.getNightPrice());
 
         return cabinResponse;
     }
@@ -108,13 +115,12 @@ public class CabinService {
         return CabinResponse.builder()
                 .id(cabin.getId())
                 .userId(cabin.getUserId())
-                .name(cabin.getName())
                 .price(cabin.getPrice())
+                .name(cabin.getName())
                 .description(cabin.getDescription())
                 .image(cabin.getImage())
                 .clubStatus(cabin.getClubStatus())
                 .clubId(cabin.getClubId())
-                .clubStatus(cabin.getClubStatus())
                 .build();
     }
 }

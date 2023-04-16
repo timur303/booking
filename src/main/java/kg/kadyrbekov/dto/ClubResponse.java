@@ -1,5 +1,7 @@
 package kg.kadyrbekov.dto;
 
+import io.swagger.annotations.ApiModel;
+import kg.kadyrbekov.model.entity.Photo;
 import kg.kadyrbekov.model.entity.Review;
 import kg.kadyrbekov.model.enums.City;
 import kg.kadyrbekov.model.enums.StarRating;
@@ -14,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@ApiModel("clubResponse")
 public class ClubResponse {
 
     private Long id;
@@ -38,4 +41,10 @@ public class ClubResponse {
     private String homeNumber;
 
     private Long userId;
+
+    private Long clubManagerId;
+
+    private List<Photo> photos;
+
+    private List<Review> reviews;
 }

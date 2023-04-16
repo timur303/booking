@@ -1,9 +1,9 @@
 package kg.kadyrbekov.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.ApiModel;
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.enums.ClubStatus;
-import kg.kadyrbekov.model.enums.Night;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +12,7 @@ import lombok.Setter;
 import javax.persistence.*;
 
 import static javax.persistence.CascadeType.*;
+import static javax.persistence.CascadeType.REFRESH;
 
 @Getter
 @Setter
@@ -19,6 +20,7 @@ import static javax.persistence.CascadeType.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "computers")
+@ApiModel(description = "The model representing a Computer")
 public class Computer {
 
     @Id
@@ -51,8 +53,7 @@ public class Computer {
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private User user;
+
     @Transient
     Long userId;
-
-
 }

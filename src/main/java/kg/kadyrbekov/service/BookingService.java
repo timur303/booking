@@ -2,25 +2,29 @@ package kg.kadyrbekov.service;
 
 import kg.kadyrbekov.dto.BookingRequest;
 import kg.kadyrbekov.dto.BookingResponse;
+import kg.kadyrbekov.exception.NotFoundException;
+import kg.kadyrbekov.exception.TimeExpiredException;
+import kg.kadyrbekov.exception.TurfAlreadyBookedException;
+import kg.kadyrbekov.exception.UserBlockedException;
 import kg.kadyrbekov.model.User;
-import kg.kadyrbekov.model.entity.Booking;
-import kg.kadyrbekov.model.entity.Cabin;
-import kg.kadyrbekov.model.entity.Computer;
+import kg.kadyrbekov.model.entity.*;
 import kg.kadyrbekov.model.enums.ClubStatus;
-import kg.kadyrbekov.repository.BookingRepository;
-import kg.kadyrbekov.repository.CabinRepository;
-import kg.kadyrbekov.repository.ComputerRepository;
-import kg.kadyrbekov.repository.UserRepository;
+import kg.kadyrbekov.model.enums.Night;
+import kg.kadyrbekov.repository.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.webjars.NotFoundException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 @Service
+@RequiredArgsConstructor
 public class BookingService {
 
     private final Map<Long, Thread> runningTimers = new ConcurrentHashMap<>();
@@ -29,15 +33,100 @@ public class BookingService {
     private final ComputerRepository computerRepository;
     private final UserRepository userRepository;
 
-    public BookingService(CabinRepository cabinRepository, BookingRepository bookingRepository, ComputerRepository computerRepository, UserRepository userRepository) {
-        this.cabinRepository = cabinRepository;
-        this.bookingRepository = bookingRepository;
-        this.computerRepository = computerRepository;
-        this.userRepository = userRepository;
+    private final VolleyballRepository volleyballRepository;
+
+    private final TurfRepository turfRepository;
+
+    private final OrderHistoryService orderHistoryService;
+
+    public BookingResponse bookCabins(BookingRequest bookingRequest, List<Long> cabinsId) throws TimeExpiredException, UserBlockedException {
+        List<Cabin> cabins = cabinRepository.findAllById(cabinsId);
+
+        LocalDateTime from = bookingRequest.getFrom();
+        LocalDateTime to = bookingRequest.getTo();
+        Night night = bookingRequest.getNight();
+
+        double totalPrice = 0;
+        Booking booking = null;
+
+        for (Cabin cabin : cabins) {
+            if (cabin.getClubStatus() == ClubStatus.BOOKED) {
+                throw new TurfAlreadyBookedException("Cabin with id " + cabin.getId() + " is already booked and cannot be booked again.");
+            }
+            if (to.isBefore(LocalDateTime.now())) {
+                throw new TimeExpiredException("Booking time is expired");
+            }
+            if (from.isAfter(to)) {
+                throw new TimeExpiredException("Booking end time is before start time");
+            }
+            if (from.isBefore(LocalDateTime.now())) {
+                throw new TimeExpiredException("Booking start time is overdue");
+            }
+
+            Duration duration = Duration.between(from, to);
+            long hours = duration.toHours();
+            long minutes = duration.toMinutes() - (hours * 60);
+
+            double cabinPrice = 0;
+            if (night == Night.NIGHT) {
+                cabinPrice = (hours * 60 + minutes) * (cabin.getNightPrice() / 60);
+            } else {
+                cabinPrice = (hours * 60 + minutes) * (cabin.getPrice() / 60);
+            }
+
+            totalPrice += cabinPrice;
+
+            User user = getPrinciple();
+            if (user.isBlocked()) {
+                throw new UserBlockedException("User is blocked and cannot book cabins.");
+            }
+
+            booking = new Booking();
+            booking.setFroms(from);
+            booking.setBto(to);
+            booking.setShowDate(new Date());
+            booking.setResponse("OK");
+            booking.setTotalPrice(cabinPrice);
+            booking.setCabin(cabin);
+            booking.setUser(user);
+
+            cabin.setClubStatus(ClubStatus.BOOKED);
+
+            Booking bookingSave = bookingRepository.save(booking);
+            cabinRepository.save(cabin);
+
+            orderHistoryService.createOrderHistory(bookingSave, LocalDateTime.now());
+
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    cabin.setClubStatus(ClubStatus.NOT_BOOKED);
+                    cabinRepository.save(cabin);
+                }
+            }, Date.from(to.atZone(ZoneId.systemDefault()).toInstant()));
+        }
+
+        BookingResponse bookingResponse = new BookingResponse();
+        bookingResponse.setMessage("Booking successful for " + cabins.size() + " cabins");
+        bookingResponse.setFrom(from);
+        bookingResponse.setTo(to);
+        bookingResponse.setTotalPrice(totalPrice);
+
+        if (booking != null) {
+            bookingResponse.setId(booking.getId());
+            bookingResponse.setUserId(booking.getUser().getId());
+        }
+
+        return bookingResponse;
     }
 
 
-    public void cancelBooking(Long cabinId) {
+    public Booking getByID(Long id) {
+        return bookingRepository.findById(id).get();
+    }
+
+    public void cancelBooking(Long cabinId) throws NotFoundException {
         Thread thread = runningTimers.get(cabinId);
         if (thread != null) {
             thread.interrupt();
@@ -51,185 +140,245 @@ public class BookingService {
         }
     }
 
-    public Booking bookCabins1(BookingRequest bookingRequest, Long cabinId) throws InterruptedException {
-        User user = getPrinciple();
-        Cabin cabin = cabinRepository.findById(cabinId)
-                .orElseThrow(() -> new NotFoundException("Cabin with id not found " + cabinId));
-        if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
-            throw new RuntimeException("Cabin already booked");
-        } else if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
-            Booking booking = new Booking();
-            booking.setCreatedAt(LocalDateTime.now());
-            booking.setCabin(cabin);
-            booking.setUser(user);
-            booking.setCabinId(cabinId);
-            booking.setUserId(user.getId());
-            booking.setHours(bookingRequest.getHours());
-            booking.setMinutes(bookingRequest.getMinutes());
-            bookingRepository.save(booking);
-            cabin.setClubStatus(ClubStatus.BOOKED);
-            cabinRepository.save(cabin);
 
-            int seconds = 0;
-            double totalSeconds = bookingRequest.getHours() * 3600 + bookingRequest.getMinutes() * 60 + seconds;
-            while (totalSeconds > 0) {
-                int remainingHours = (int) (totalSeconds / 3600);
-                int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
-                int remainingSeconds = (int) (totalSeconds % 60);
-                System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
-//                Thread.sleep(1000);
-                totalSeconds--;
+    public BookingResponse bookTurfs(BookingRequest bookingRequest, List<Long> turfIds) throws TimeExpiredException, UserBlockedException {
+        List<Turf> turfs = turfRepository.findAllById(turfIds);
+        LocalDateTime from = bookingRequest.getFrom();
+        LocalDateTime to = bookingRequest.getTo();
+        Night night = bookingRequest.getNight();
+
+        double totalPrice = 0;
+        Booking booking = null;
+
+        for (Turf turf : turfs) {
+            if (turf.getClubStatus() == ClubStatus.BOOKED) {
+                throw new TurfAlreadyBookedException("Turf with id " + turf.getId() + " is already booked and cannot be booked again.");
+            }
+            if (to.isBefore(LocalDateTime.now())) {
+                throw new TimeExpiredException("Booking time is expired");
+            }
+            if (from.isAfter(to)) {
+                throw new TimeExpiredException("Booking end time is before start time");
+            }
+            if (from.isBefore(LocalDateTime.now())) {
+                throw new TimeExpiredException("Booking start time is overdue");
             }
 
-            System.out.println("Time's up!");
-            cabin.setClubStatus(ClubStatus.NOT_BOOKED);
-            cabinRepository.save(cabin);
-            double cost = (bookingRequest.getMinutes() / 60.0) * cabin.getPrice() + (bookingRequest.getHours() * cabin.getPrice());
+            Duration duration = Duration.between(from, to);
+            long hours = duration.toHours();
+            long minutes = duration.toMinutes() - (hours * 60);
 
-            String costInfo = "Your check " + cost + " $ ";
-            booking.setCost(cost);
-            booking.setEndAt(LocalDateTime.now());
-            booking.setResponse(costInfo);
-            bookingRepository.save(booking);
-
-            return booking;
-        } else {
-            throw new RuntimeException("Cabin status not supported");
-        }
-
-    }
-
-
-    public Booking bookCabins(BookingRequest bookingRequest, Long cabinId) throws InterruptedException {
-        User user = getPrinciple();
-        Cabin cabin = cabinRepository.findById(cabinId)
-                .orElseThrow(() -> new NotFoundException("Cabin with id not found " + cabinId));
-        if (cabin.getClubStatus().equals(ClubStatus.BOOKED)) {
-            throw new RuntimeException("Cabin already booked");
-        } else if (cabin.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
-            Booking booking = new Booking();
-            booking.setCreatedAt(LocalDateTime.now());
-            booking.setCabin(cabin);
-            booking.setUser(user);
-            booking.setCabinId(cabinId);
-            booking.setUserId(user.getId());
-            bookingRepository.save(booking);
-            cabin.setClubStatus(ClubStatus.BOOKED);
-            cabinRepository.save(cabin);
-
-            int seconds = 0;
-            double totalSeconds = bookingRequest.getHours() * 3600 + bookingRequest.getMinutes() * 60 + seconds;
-            while (totalSeconds > 0) {
-                int remainingHours = (int) (totalSeconds / 3600);
-                int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
-                int remainingSeconds = (int) (totalSeconds % 60);
-                System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
-//                Thread.sleep(1000);
-                totalSeconds--;
+            double turfPrice = 0;
+            if (night == Night.NIGHT) {
+                turfPrice = (hours * 60 + minutes) * (turf.getNightPrice() / 60);
+            } else {
+                turfPrice = (hours * 60 + minutes) * (turf.getPrice() / 60);
             }
 
-            System.out.println("Time's up!");
-            cabin.setClubStatus(ClubStatus.NOT_BOOKED);
-            cabinRepository.save(cabin);
+            totalPrice += turfPrice;
 
+            User user = getPrinciple();
+            booking = new Booking();
+            if (user.isBlocked()) {
+                throw new UserBlockedException("User is blocked and cannot book turf hall");
+            }
 
-            double cost = (bookingRequest.getMinutes() / 60.0) * cabin.getPrice() +
-                    (bookingRequest.getHours() * cabin.getPrice() +
-                            (bookingRequest.getNight().getCount() * cabin.getPriceNight()));
-            String costInfo = "Your check " + cost + " $ ";
-            booking.setCost(cost);
-            booking.setMinutes(bookingRequest.getMinutes());
-            booking.setHours(bookingRequest.getHours());
-            booking.setEndAt(LocalDateTime.now());
-            booking.setNight(bookingRequest.getNight());
-            booking.setResponse(costInfo);
+            booking.setFroms(from);
+            booking.setBto(to);
+            booking.setShowDate(new Date());
+            booking.setResponse("OK");
+            booking.setTotalPrice(turfPrice);
+            booking.setUser(user);
+            booking.setTurf(turf);
 
-            bookingRepository.save(booking);
+            turf.setClubStatus(ClubStatus.BOOKED);
 
-            return booking;
+            Booking bookingSave = bookingRepository.save(booking);
+            turfRepository.save(turf);
+            orderHistoryService.createOrderHistory(bookingSave, LocalDateTime.now());
 
-        } else {
-            throw new RuntimeException("Cabin status not supported");
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    turf.setClubStatus(ClubStatus.NOT_BOOKED);
+                    turfRepository.save(turf);
+                }
+            }, Date.from(to.atZone(ZoneId.systemDefault()).toInstant()));
         }
 
+        BookingResponse bookingResponse = new BookingResponse();
+        bookingResponse.setMessage("Booking successful for " + turfs.size() + " turfs");
+        bookingResponse.setFrom(from);
+        bookingResponse.setTo(to);
+        bookingResponse.setTotalPrice(totalPrice);
+
+        if (booking != null) {
+            bookingResponse.setId(booking.getId());
+            bookingResponse.setUserId(booking.getUser().getId());
+        }
+
+        return bookingResponse;
     }
 
-    public Booking bookComps(BookingRequest bookingRequest, Long compId) throws InterruptedException {
-        User user = getPrinciple();
-        Computer computer = computerRepository.findById(compId)
-                .orElseThrow(() -> new NotFoundException("Computer with id not found " + compId));
-        if (computer.getClubStatus().equals(ClubStatus.BOOKED)) {
-            throw new RuntimeException("Cabin already booked");
-        } else if (computer.getClubStatus().equals(ClubStatus.NOT_BOOKED)) {
-            Booking booking = new Booking();
-            booking.setCreatedAt(LocalDateTime.now());
+    public BookingResponse bookVolleyballs(BookingRequest bookingRequest, List<Long> volleyballIds) throws TimeExpiredException, UserBlockedException {
+        List<Volleyball> volleyballs = volleyballRepository.findAllById(volleyballIds);
+
+        LocalDateTime from = bookingRequest.getFrom();
+        LocalDateTime to = bookingRequest.getTo();
+        Night night = bookingRequest.getNight();
+
+        double totalPrice = 0;
+        Booking booking = null;
+
+        for (Volleyball volleyball : volleyballs) {
+            if (volleyball.getClubStatus() == ClubStatus.BOOKED) {
+                throw new TurfAlreadyBookedException("Volleyball with id " + volleyball.getId() + " is already booked and cannot be booked again.");
+            }
+            if (to.isBefore(LocalDateTime.now())) {
+                throw new TimeExpiredException("Booking time is expired");
+            }
+            if (from.isAfter(to)) {
+                throw new TimeExpiredException("Booking end time is before start time");
+            }
+            if (from.isBefore(LocalDateTime.now())) {
+                throw new TimeExpiredException("Booking start time is overdue");
+            }
+
+            Duration duration = Duration.between(from, to);
+            long hours = duration.toHours();
+            long minutes = duration.toMinutes() - (hours * 60);
+
+            double volleyballPrice = 0;
+            if (night == Night.NIGHT) {
+                volleyballPrice = (hours * 60 + minutes) * (volleyball.getNightPrice() / 60);
+            } else {
+                volleyballPrice = (hours * 60 + minutes) * (volleyball.getPrice() / 60);
+            }
+
+            totalPrice += volleyballPrice;
+
+            User user = getPrinciple();
+            booking = new Booking();
+            if (user.isBlocked()) {
+                throw new UserBlockedException("User is blocked and cannot book volleyball hall");
+            }
+            booking.setFroms(from);
+            booking.setBto(to);
+            booking.setShowDate(new Date());
+            booking.setResponse("OK");
+            booking.setTotalPrice(volleyballPrice);
+            booking.setUser(user);
+            booking.setVolleyball(volleyball);
+
+            volleyball.setClubStatus(ClubStatus.BOOKED);
+
+            Booking bookingSave = bookingRepository.save(booking);
+            volleyballRepository.save(volleyball);
+
+            orderHistoryService.createOrderHistory(bookingSave, LocalDateTime.now());
+
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    volleyball.setClubStatus(ClubStatus.NOT_BOOKED);
+                    volleyballRepository.save(volleyball);
+                }
+            }, Date.from(to.atZone(ZoneId.systemDefault()).toInstant()));
+        }
+
+        BookingResponse bookingResponse = new BookingResponse();
+        bookingResponse.setMessage("Booking successful for " + volleyballs.size() + " volleyballs");
+        bookingResponse.setFrom(from);
+        bookingResponse.setTo(to);
+        bookingResponse.setTotalPrice(totalPrice);
+
+        if (booking != null) {
+            bookingResponse.setId(booking.getId());
+            bookingResponse.setUserId(booking.getUser().getId());
+        }
+
+        return bookingResponse;
+    }
+
+    public BookingResponse bookComputers(BookingRequest bookingRequest, List<Long> computersId) throws TimeExpiredException, UserBlockedException {
+        List<Computer> computers = computerRepository.findAllById(computersId);
+
+        LocalDateTime from = bookingRequest.getFrom();
+        LocalDateTime to = bookingRequest.getTo();
+        Night night = bookingRequest.getNight();
+
+        double totalPrice = 0;
+        Booking booking = new Booking();
+
+        for (Computer computer : computers) {
+            if (computer.getClubStatus() == ClubStatus.BOOKED) {
+                throw new TurfAlreadyBookedException("Computer with id " + computer.getId() + " is already booked and cannot be booked again.");
+            }
+            if (to.isBefore(LocalDateTime.now())) {
+                throw new TimeExpiredException("Booking time is expired");
+            }
+            if (from.isAfter(to)) {
+                throw new TimeExpiredException("Booking end time is before start time");
+            }
+            if (from.isBefore(LocalDateTime.now())) {
+                throw new TimeExpiredException("Booking start time is overdue");
+            }
+
+            Duration duration = Duration.between(from, to);
+            long hours = duration.toHours();
+            long minutes = duration.toMinutes() - (hours * 60);
+
+            double computerPrice = 0;
+            if (night == Night.NIGHT) {
+                computerPrice = (hours * 60 + minutes) * (computer.getNightPrice() / 60);
+            } else {
+                computerPrice = (hours * 60 + minutes) * (computer.getPrice() / 60);
+            }
+
+            totalPrice += computerPrice;
+
+            User user = getPrinciple();
+            if (user.isBlocked()) {
+                throw new UserBlockedException("User is blocked and cannot book computer");
+            }
+            booking = new Booking();
+            booking.setFroms(from);
+            booking.setBto(to);
+            booking.setShowDate(new Date());
+            booking.setResponse("OK");
+            booking.setTotalPrice(computerPrice);
+            booking.setUser(user);
             booking.setComputer(computer);
-            booking.setUser(user);
-            booking.setComputerId(compId);
-            booking.setUserId(user.getId());
-            bookingRepository.save(booking);
+
             computer.setClubStatus(ClubStatus.BOOKED);
+
+            Booking bookingSave = bookingRepository.save(booking);
             computerRepository.save(computer);
+            orderHistoryService.createOrderHistory(bookingSave, LocalDateTime.now());
 
-            int seconds = 0;
-            double totalSeconds = bookingRequest.getHours() * 3600 + bookingRequest.getMinutes() * 60 + seconds;
-            while (totalSeconds > 0) {
-                int remainingHours = (int) (totalSeconds / 3600);
-                int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
-                int remainingSeconds = (int) (totalSeconds % 60);
-                System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
-//                Thread.sleep(1000);
-                totalSeconds--;
-            }
-
-            System.out.println("Time's up!");
-            computer.setClubStatus(ClubStatus.NOT_BOOKED);
-            computerRepository.save(computer);
-
-            double cost = (bookingRequest.getMinutes() / 60.0) * computer.getPrice() +
-                    (bookingRequest.getHours() * computer.getPrice()) +
-                    (bookingRequest.getNight().getCount() * computer.getNightPrice());
-
-            String costInfoM = "Your check " + cost + " $";
-            booking.setCost(cost);
-            booking.setMinutes(bookingRequest.getMinutes());
-            booking.setHours(bookingRequest.getHours());
-            booking.setEndAt(LocalDateTime.now());
-            booking.setResponse(costInfoM);
-            booking.setNight(bookingRequest.getNight());
-
-            bookingRepository.save(booking);
-            return booking;
-
-        } else {
-            throw new RuntimeException("Computer status not supported");
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    computer.setClubStatus(ClubStatus.NOT_BOOKED);
+                    computerRepository.save(computer);
+                }
+            }, Date.from(to.atZone(ZoneId.systemDefault()).toInstant()));
         }
-    }
+        BookingResponse bookingResponse = new BookingResponse();
+        bookingResponse.setMessage("Booking successful for " + computers.size() + " computers");
+        bookingResponse.setFrom(from);
+        bookingResponse.setTo(to);
+        bookingResponse.setTotalPrice(totalPrice);
 
-
-    public void countdown(int hours, int minutes) throws InterruptedException {
-        int seconds = 0;
-        double totalSeconds = hours * 3600 + minutes * 60 + seconds;
-        while (totalSeconds > 0) {
-            int remainingHours = (int) (totalSeconds / 3600);
-            int remainingMinutes = (int) ((totalSeconds % 3600) / 60);
-            int remainingSeconds = (int) (totalSeconds % 60);
-            System.out.printf("%02d:%02d:%02d\n", remainingHours, remainingMinutes, remainingSeconds);
-            Thread.sleep(1000);
-            totalSeconds--;
+        if (booking != null) {
+            bookingResponse.setId(booking.getId());
+            bookingResponse.setUserId(booking.getUser().getId());
         }
-        System.out.println("Time's up!");
-        Cabin cabin = cabinRepository.findById(1L).get();
 
-
-        double cost = (minutes / 60.0) * cabin.getPrice();
-        System.out.println("Your check " + cost + " $ ");
-        Booking booking = bookingRepository.findById(1L).get();
-        booking.setCost(cost);
-        booking.setMinutes(minutes);
-        booking.setHours(hours);
-        bookingRepository.save(booking);
-
+        return bookingResponse;
     }
 
     public User getPrinciple() {
@@ -237,22 +386,12 @@ public class BookingService {
         String email = authentication.getName();
         return userRepository.findByEmail(email).orElseThrow(
                 () -> {
-                    throw new NotFoundException(String.format("Пользователь с таким электронным адресом: %s не найден!", email));
+                    try {
+                        throw new NotFoundException(String.format("Пользователь с таким электронным адресом: %s не найден!", email));
+                    } catch (NotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
                 });
     }
 
-
-    public BookingResponse bookingResponse(Booking booking) {
-        return BookingResponse.builder()
-                .id(booking.getId())
-                .hours(booking.getHours())
-                .createdAt(booking.getCreatedAt())
-                .endAt(booking.getEndAt())
-                .userId(booking.getUserId())
-                .computerId(booking.getComputerId())
-                .cabinId(booking.getCabinId())
-                .cost(booking.getCost())
-                .minutes(booking.getMinutes())
-                .build();
-    }
 }

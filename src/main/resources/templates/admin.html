@@ -1,18 +1,34 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>User List</title>
+    <title>User Management</title>
 </head>
 <body>
-<h1>Users </h1>
+<h1>User Management</h1>
+
+<h2>Block User</h2>
+<form th:action="@{/block-user}" method="post">
+    <input type="text" name="userId" placeholder="User ID" required/>
+    <button type="submit">Block User</button>
+</form>
+
+<h2>Unblock User</h2>
+<form th:action="@{/unblock-user}" method="post">
+    <input type="text" name="userId" placeholder="User ID" required/>
+    <button type="submit">Unblock User</button>
+</form>
+
+<h2>All Users</h2>
 <table>
     <thead>
     <tr>
         <th>ID</th>
-        <th>Name</th>
+        <th>First Name</th>
+        <th>Last Name</th>
         <th>Email</th>
-        <th>Role</th>
+        <th>Phone Number</th>
+        <th>Age</th>
+        <th>Blocked</th>
         <th>Actions</th>
     </tr>
     </thead>
@@ -20,14 +36,34 @@
     <tr th:each="user : ${users}">
         <td th:text="${user.id}"></td>
         <td th:text="${user.firstName}"></td>
+        <td th:text="${user.lastName}"></td>
         <td th:text="${user.email}"></td>
-        <td th:text="${user.role}"></td>
+        <td th:text="${user.phoneNumber}"></td>
+        <td th:text="${user.age}"></td>
+        <td th:text="${user.blocked} ? 'Yes' : 'No'"></td>
         <td>
-            <a th:href="@{/editUser/{id}(id=${user.id})}">Edit</a>
-            <a th:href="@{/deleteUser/{id}(id=${user.id})}">Delete</a>
+            <form th:action="@{/delete-user}" method="post" style="display: inline;">
+                <input type="hidden" name="userId" th:value="${user.id}" />
+                <button type="submit">Delete</button>
+            </form>
         </td>
     </tr>
     </tbody>
 </table>
+
+<h2>Create User</h2>
+<form th:action="@{/create-user}" method="post">
+    <input type="text" name="firstName" placeholder="First Name" required/>
+    <input type="text" name="lastName" placeholder="Last Name" required/>
+    <input type="email" name="email" placeholder="Email" required/>
+    <input type="text" name="phoneNumber" placeholder="Phone Number" required/>
+    <input type="number" name="age" placeholder="Age" required/>
+    <input type="password" name="password" placeholder="Password" required/>
+    <select name="role">
+        <option value="MANAGER">Manager</option>
+        <option value="EMPLOYEE">Employee</option>
+    </select>
+    <button type="submit">Create User</button>
+</form>
 </body>
 </html>

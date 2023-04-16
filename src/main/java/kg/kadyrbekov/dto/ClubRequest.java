@@ -1,6 +1,8 @@
 package kg.kadyrbekov.dto;
 
+import io.swagger.annotations.ApiModel;
 import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.entity.Photo;
 import kg.kadyrbekov.model.entity.Review;
 import kg.kadyrbekov.model.enums.City;
 import kg.kadyrbekov.model.enums.StarRating;
@@ -9,6 +11,7 @@ import lombok.Setter;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -39,5 +42,10 @@ public class ClubRequest {
     private String street;
 
     private String homeNumber;
+
+    private Long clubManagerId;
+
+    private List<Photo> photos;
+
 
 }

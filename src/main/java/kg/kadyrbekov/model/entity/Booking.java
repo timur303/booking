@@ -1,17 +1,19 @@
 package kg.kadyrbekov.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.annotations.ApiModel;
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.enums.Night;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,21 +27,18 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @CreatedDate
-    private LocalDateTime createdAt;
+    @Temporal(TemporalType.DATE)
+    private Date showDate;
 
-    @CreatedDate
-    private LocalDateTime endAt;
+    private LocalDateTime froms;
 
-    private int hours;
-
-    private int minutes;
-
-    private double cost;
+    private LocalDateTime bto;
 
     private String response;
 
-    @OneToOne
+    private double totalPrice;
+
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cabin_id")
     @JsonIgnore
     private Cabin cabin;
@@ -51,16 +50,30 @@ public class Booking {
 
     @OneToOne
     @JoinColumn(name = "computer_id")
-    @JsonIgnore
     private Computer computer;
     @Transient
     private Long computerId;
 
+    @OneToMany(mappedBy = "booking")
+    @JsonIgnore
+    private List<OrderHistory> orderHistories;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    @JsonIgnore
     private User user;
     @Transient
     private Long userId;
+
+    @OneToOne
+    @JoinColumn(name = "volleyball_id")
+    private Volleyball volleyball;
+    @Transient
+    private Long gymId;
+
+    @OneToOne
+    @JoinColumn(name = "turf_Id")
+    private Turf turf;
+    @Transient
+    private Long turfId;
 
 }

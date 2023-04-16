@@ -1,10 +1,8 @@
 package kg.kadyrbekov.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import kg.kadyrbekov.model.entity.Booking;
-import kg.kadyrbekov.model.entity.Cabin;
-import kg.kadyrbekov.model.entity.Club;
-import kg.kadyrbekov.model.entity.Review;
+import io.swagger.annotations.ApiModelProperty;
+import kg.kadyrbekov.model.entity.*;
 import kg.kadyrbekov.model.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -35,6 +33,7 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ApiModelProperty(value = "first Name", example = "Timur")
     private String firstName;
 
     private String lastName;
@@ -42,7 +41,6 @@ public class User implements UserDetails {
     private int age;
 
     private Long phoneNumber;
-
     @Email
     private String email;
 
@@ -64,17 +62,13 @@ public class User implements UserDetails {
 
     @OneToMany(cascade = ALL, mappedBy = "user")
     @JsonIgnore
-    private List<Club> clubs;
-
-    @OneToMany(fetch = FetchType.LAZY, cascade = ALL, mappedBy = "user")
-    @JsonIgnore
-    private List<Cabin> cabins;
-
-
-    @OneToMany(cascade = ALL, mappedBy = "user")
-    @JsonIgnore
     private List<Booking> bookings;
 
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private List<OrderHistory> orderHistories;
+
+    private Long managerId;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> grantedAuthorities = new LinkedList<>();

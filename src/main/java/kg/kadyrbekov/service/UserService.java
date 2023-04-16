@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -28,18 +30,61 @@ public class UserService {
     }
 
     public User mapToEntity(UserRequest request) {
+        String email = request.getEmail();
+
         User user = new User();
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
         user.setAge(request.getAge());
         user.setPassword(request.getPassword());
-        if (user.getEmail().equals("timur@gmail.com")) {
-            user.setRole((Role.ADMIN));
+        user.setManagerId(request.getManagerId());
+
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        if (existingUser.isPresent()) {
+            throw new RuntimeException("Email address already registered.");
+        }
+
+        if (email.equals("admin@gmail.com")) {
+            if (isAdminAlreadyLoggedIn()) {
+                throw new RuntimeException("Admin is already logged in");
+            } else {
+                user.setRole(Role.ADMIN);
+                setAdminLoggedIn(true);
+            }
         } else {
             user.setRole(Role.USER);
         }
+
         return user;
+    }
+
+    public UserResponse updateProfile(Long userId, UserRequest updatedUserRequest) {
+        User existingUser = userRepository.findById(userId).get();
+
+        if (existingUser == null) {
+            throw new RuntimeException("User not found.");
+        }
+
+        existingUser.setFirstName(updatedUserRequest.getFirstName());
+        existingUser.setLastName(updatedUserRequest.getLastName());
+        existingUser.setEmail(updatedUserRequest.getEmail());
+        existingUser.setAge(updatedUserRequest.getAge());
+
+        User updatedUser = userRepository.save(existingUser);
+
+        return mapToResponse(updatedUser);
+    }
+
+
+    private static boolean adminLoggedIn = false;
+
+    private synchronized boolean isAdminAlreadyLoggedIn() {
+        return adminLoggedIn;
+    }
+
+    private synchronized void setAdminLoggedIn(boolean loggedIn) {
+        adminLoggedIn = loggedIn;
     }
 
 
@@ -52,6 +97,7 @@ public class UserService {
                 .age(user.getAge())
                 .email(user.getEmail())
                 .password(user.getPassword())
+                .clubManagerId(user.getManagerId())
                 .build();
     }
 

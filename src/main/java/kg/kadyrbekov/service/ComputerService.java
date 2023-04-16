@@ -2,9 +2,11 @@ package kg.kadyrbekov.service;
 
 import kg.kadyrbekov.dto.ComputerRequest;
 import kg.kadyrbekov.dto.ComputerResponse;
+import kg.kadyrbekov.exception.NotFoundException;
+import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.entity.Club;
 import kg.kadyrbekov.model.entity.Computer;
-import kg.kadyrbekov.model.User;
+import kg.kadyrbekov.model.enums.Role;
 import kg.kadyrbekov.repository.ClubRepository;
 import kg.kadyrbekov.repository.ComputerRepository;
 import kg.kadyrbekov.repository.UserRepository;
@@ -12,9 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.webjars.NotFoundException;
 
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +26,7 @@ public class ComputerService {
 
     private final ClubRepository clubRepository;
 
-    public ComputerResponse create(ComputerRequest request) {
+    public ComputerResponse create(ComputerRequest request) throws NotFoundException {
         User user = getAuthentication();
         Club club = clubRepository.findById(request.getClubId()).orElseThrow(
                 () -> new NotFoundException("Club with id not found"));
@@ -36,12 +36,19 @@ public class ComputerService {
         computer.setUser(user);
         computer.setUserId(user.getId());
         club.setComputers(computer.getClub().getComputers());
+        if (club.getManagerName().isEmpty()) {
+            throw new RuntimeException("You can't add your computer");
+        }
+        if (!user.getRole().equals(Role.ADMIN)) {
+            if (!club.getClubManagerId().equals(user.getManagerId())) {
+                throw new RuntimeException("You cannot add a computer to another club");
+            }
+        }
         computerRepository.save(computer);
-
         return mapToResponse(computer);
     }
 
-    public User getAuthentication() {
+    public User getAuthentication() throws NotFoundException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         return userRepository.findByEmail(email).orElseThrow(
@@ -49,7 +56,7 @@ public class ComputerService {
     }
 
 
-    public ComputerResponse update(ComputerRequest request, Long id) {
+    public ComputerResponse update(ComputerRequest request, Long id) throws NotFoundException {
         Computer computer = findByIdComputer(id);
         computer.setName(request.getName());
         computer.setDescription(request.getDescription());
@@ -59,12 +66,13 @@ public class ComputerService {
         return computerResponse(computer);
     }
 
-    public Computer findByIdComputer(Long computerId) {
-        return computerRepository.findById(computerId).orElseThrow
-                (() -> new NotFoundException(String.format("Computer with id not found", computerId)));
+    public Computer findByIdComputer(Long computerId) throws NotFoundException {
+        return computerRepository.findById(computerId).orElseThrow(
+                ()-> new NotFoundException("Computer with id not found "));
     }
 
-    public void deleteById(Long id) {
+
+    public void deleteById(Long id) throws NotFoundException {
         Computer computer = findByIdComputer(id);
         computerRepository.delete(computer);
     }
@@ -84,16 +92,13 @@ public class ComputerService {
     }
 
     public ComputerResponse mapToResponse(Computer computer) {
-        if (computer == null) {
-            return null;
-        }
         ComputerResponse response = new ComputerResponse();
-        response.setPrice(computer.getPrice());
         response.setId(computer.getId());
+        response.setPrice(computer.getPrice());
         response.setClubId(computer.getClubId());
-        response.setImage(computer.getImage());
         response.setName(computer.getName());
         response.setDescription(computer.getDescription());
+        response.setImage(computer.getImage());
         response.setClubStatus(computer.getClubStatus());
         response.setUserId(computer.getUserId());
         response.setNightPrice(computer.getNightPrice());
@@ -108,9 +113,9 @@ public class ComputerService {
                 .name(computer.getName())
                 .price(computer.getPrice())
                 .description(computer.getDescription())
+                .clubId(computer.getClubId())
                 .image(computer.getImage())
                 .clubStatus(computer.getClubStatus())
-                .clubId(computer.getClubId())
                 .build();
     }
 }

@@ -1,6 +1,7 @@
 package kg.kadyrbekov.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.ApiModel;
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.enums.City;
 import kg.kadyrbekov.model.enums.StarRating;
@@ -19,6 +20,7 @@ import static javax.persistence.CascadeType.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@ApiModel(description = "The model representing a Club")
 @Table(name = "clubs")
 public class Club {
     @Id
@@ -52,6 +54,9 @@ public class Club {
     @OneToMany(fetch = FetchType.LAZY, cascade = {DETACH, PERSIST, MERGE, REFRESH})
     @JsonIgnore
     private List<Cabin> cabins;
+    @Transient
+    private Long cabinId;
+
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {DETACH, PERSIST, MERGE, REFRESH})
     @JsonIgnore
@@ -68,6 +73,5 @@ public class Club {
     @OneToMany(mappedBy = "club")
     private List<Review> reviews;
 
-    @Transient
-    private Long cabinId;
+    private Long clubManagerId;
 }

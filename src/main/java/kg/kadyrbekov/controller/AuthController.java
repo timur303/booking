@@ -1,6 +1,7 @@
 package kg.kadyrbekov.controller;
 
 
+import io.swagger.annotations.Api;
 import kg.kadyrbekov.config.jwt.JwtTokenUtil;
 import kg.kadyrbekov.dto.UserRequest;
 import kg.kadyrbekov.dto.UserResponse;
@@ -16,13 +17,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@Api(tags = "Authentication")
 @RequestMapping("/api/jwt")
 public class AuthController {
 
@@ -52,8 +51,12 @@ public class AuthController {
     }
 
     @PostMapping("/registration")
-    public UserResponse create(@RequestBody UserRequest userRequest){
+    public UserResponse create(@RequestBody UserRequest userRequest) {
         return userService.register(userRequest);
     }
 
+    @PatchMapping("/update/{id}")
+    public UserResponse update(@PathVariable Long id, @RequestBody UserRequest request) {
+        return userService.updateProfile(id, request);
+    }
 }

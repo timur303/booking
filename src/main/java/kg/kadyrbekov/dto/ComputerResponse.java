@@ -1,11 +1,14 @@
 package kg.kadyrbekov.dto;
 
+import kg.kadyrbekov.model.entity.Photo;
+import kg.kadyrbekov.model.entity.Review;
 import kg.kadyrbekov.model.enums.ClubStatus;
 import kg.kadyrbekov.model.enums.Night;
 import lombok.*;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,9 +28,9 @@ public class ComputerResponse {
 
     private double nightPrice;
 
-    private String description;
-
     private double price;
+
+    private String description;
 
     @Enumerated(EnumType.STRING)
     private ClubStatus clubStatus;
@@ -35,5 +38,9 @@ public class ComputerResponse {
     private Long userId;
 
     private Long clubId;
+
+    private List<Photo> photos;
+
+    private List<Review> reviews;
 
 }

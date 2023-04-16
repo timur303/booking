@@ -4,5 +4,7 @@ public enum ClubStatus {
 
     BOOKED,
 
-    NOT_BOOKED
+    NOT_BOOKED,
+
+    OPEN
 }

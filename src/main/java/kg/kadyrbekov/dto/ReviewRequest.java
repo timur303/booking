@@ -2,6 +2,7 @@ package kg.kadyrbekov.dto;
 
 import kg.kadyrbekov.model.User;
 import kg.kadyrbekov.model.entity.Club;
+import kg.kadyrbekov.model.entity.SportComplex;
 import kg.kadyrbekov.model.enums.StarRating;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,4 +26,9 @@ public class ReviewRequest {
 
     @Transient
     private Long clubId;
+
+    private SportComplex complex;
+
+    @Transient
+    private Long complexId;
 }

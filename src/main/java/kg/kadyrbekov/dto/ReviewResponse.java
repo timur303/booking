@@ -24,4 +24,6 @@ public class ReviewResponse {
     private String review;
 
     private Long clubId;
+
+    private Long complexId;
 }

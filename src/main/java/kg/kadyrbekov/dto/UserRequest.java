@@ -19,4 +19,5 @@ public class UserRequest {
 
     private String password;
 
+    private Long managerId;
 }

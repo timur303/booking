@@ -2,8 +2,9 @@ package kg.kadyrbekov.model.enums;
 
 public enum Night {
 
-    NIGHT(1);
+    NIGHT(1),
 
+    DAY(0);
     private final double night;
 
     Night(int count) {
