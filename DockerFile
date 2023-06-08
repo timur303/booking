@@ -1,4 +1,9 @@
-FROM openjdk:17
+FROM adoptopenjdk:11-jdk-hotspot
+
+WORKDIR /app
+
+COPY target/bookingT-0.0.1-SNAPSHOT.jar /app/bookingT.jar
+
 EXPOSE 8080
-ADD target/spring-boot-docker.jar spring-boot-docker.jar
-ENTRYPOINT ["java", "-jar","/spring-boot-docker.jar"]
+
+CMD ["java", "-jar", "bookingT.jar"]
