@@ -17,23 +17,23 @@
         <java.version>17</java.version>
     </properties>
     <dependencies>
+
         <dependency>
-            <groupId>org.springframework.security.oauth</groupId>
-            <artifactId>spring-security-oauth2</artifactId>
-            <version>2.5.2.RELEASE</version>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-boot-starter</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>3.0.0</version>
         </dependency>
 
-<!--            <dependency>-->
-<!--                <groupId>com.google.api-client</groupId>-->
-<!--                <artifactId>google-api-client</artifactId>-->
-<!--                <version>1.31.1</version>-->
-<!--            </dependency>-->
-
-<!--            <dependency>-->
-<!--                <groupId>com.google.auth</groupId>-->
-<!--                <artifactId>google-auth-library-oauth2-http</artifactId>-->
-<!--                <version>0.24.1</version>-->
-<!--            </dependency>-->
+        <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-core</artifactId>
+                <version>2.2.7</version>
+            </dependency>
 
         <dependency>
             <groupId>io.springfox</groupId>
@@ -41,7 +41,6 @@
             <version>3.0.0</version>
         </dependency>
 
-        <!-- Springfox Swagger UI (optional, for API documentation UI) -->
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
@@ -53,11 +52,6 @@
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-client</artifactId>
-        </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -97,19 +91,6 @@
             <version>0.9.1</version>
         </dependency>
 
-
-        <!--        <dependency>-->
-        <!--            <groupId>io.springfox</groupId>-->
-        <!--            <artifactId>springfox-swagger-ui</artifactId>-->
-        <!--            <version>3.0.0</version>-->
-        <!--        </dependency>-->
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-jose</artifactId>
-            <version>5.7.5</version>
-        </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -135,12 +116,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!--        <dependency>-->
-        <!--            <groupId>org.springdoc</groupId>-->
-        <!--            <artifactId>springdoc-openapi-ui</artifactId>-->
-        <!--            <version>1.6.13</version>-->
-        <!--        </dependency>-->
-
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -161,11 +136,11 @@
             <version>1.4.2.Final</version>
         </dependency>
 
-        <!--        <dependency>-->
-        <!--            <groupId>io.springfox</groupId>-->
-        <!--            <artifactId>springfox-boot-starter</artifactId>-->
-        <!--            <version>3.0.0</version>-->
-        <!--        </dependency>-->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.6.13</version>
+        </dependency>
 
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -209,11 +184,6 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!--        <dependency>-->
-        <!--            <groupId>org.springdoc</groupId>-->
-        <!--            <artifactId>springdoc-openapi-ui</artifactId>-->
-        <!--            <version>1.6.7</version>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
@@ -229,23 +199,6 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.hibernate</groupId>-->
-<!--            <artifactId>hibernate-core</artifactId>-->
-<!--            <version>4.1.4.Final</version>-->
-<!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>org.hibernate</groupId>-->
-<!--            <artifactId>hibernate-entitymanager</artifactId>-->
-<!--            <version>5.2.3.Final</version>-->
-<!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>javax.xml.bind</groupId>-->
-<!--            <artifactId>jaxb-api</artifactId>-->
-<!--            <version>2.3.0</version>-->
-<!--        </dependency>-->
     </dependencies>
 
     <build>

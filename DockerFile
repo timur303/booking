@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY target/bookingT-0.0.1-SNAPSHOT.jar /app/bookingT.jar
 
-EXPOSE 8080
+EXPOSE 9090
 
 CMD ["java", "-jar", "bookingT.jar"]
