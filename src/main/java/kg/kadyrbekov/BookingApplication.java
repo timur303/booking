@@ -1,6 +1,5 @@
 package kg.kadyrbekov;
 
-import io.swagger.annotations.ApiModel;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
