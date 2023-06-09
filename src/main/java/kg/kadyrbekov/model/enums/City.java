@@ -6,9 +6,17 @@ public enum City {
 
     OSH,
 
+    BATKEN,
+
     CHUI,
 
-    BATKEN,
+    JALALABAD,
+
+    NARYN,
+
+    YSYKKOL,
+
+    TALAS,
 
     MOSCOW;
 }
