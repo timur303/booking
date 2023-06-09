@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -36,14 +37,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder(){
+    public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-       auth.userDetailsService(userServiceImpl).passwordEncoder(passwordEncoder());
+        auth.userDetailsService(userServiceImpl).passwordEncoder(passwordEncoder());
     }
 
     @Override
@@ -79,11 +80,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .antMatchers("/api/users/**").hasAuthority("ADMIN")
                 .antMatchers("/api/club/**").hasAnyAuthority("ADMIN")
-                .antMatchers("/api/cabin/**").hasAnyAuthority("ADMIN","MANAGER")
-                .antMatchers("/api/turf/**").hasAnyAuthority("ADMIN","MANAGER")
-                .antMatchers("/api/volleyball/**").hasAnyAuthority("ADMIN","MANAGER")
+                .antMatchers("/api/cabin/**").hasAnyAuthority("ADMIN", "MANAGER")
+                .antMatchers("/api/turf/**").hasAnyAuthority("ADMIN", "MANAGER")
+                .antMatchers("/api/volleyball/**").hasAnyAuthority("ADMIN", "MANAGER")
                 .antMatchers("/api/complex").hasAuthority("ADMIN")
-                .antMatchers("/api/computer/**").hasAnyAuthority("ADMIN","MANAGER")
+                .antMatchers("/api/computer/**").hasAnyAuthority("ADMIN", "MANAGER")
                 .antMatchers("/hello").permitAll()
                 .anyRequest()
                 .authenticated()
@@ -92,4 +93,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
     }
+
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers("/swagger-ui/**", "/v3/api-docs/**");
+    }
 }
+
