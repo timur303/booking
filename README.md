@@ -4,7 +4,7 @@ spring_boot_profiles_active=prod
 
 PROD_DB_HOST=containers-us-west-111.railway.app
 
-PROD_DB_PORT=6954
+PROD_DB_PORT=6667
 
 PROD_DB_NAME=railway
 
