@@ -52,7 +52,7 @@ public class SwaggerConfig {
                 "",
                 "1.0",
                 "Terms of service",
-                new Contact("Timur Kadyrbekov", " ", "timur@gmail.com"),
+                new Contact(" ", " ", "kadyrbekovtimur001@gmail.com"),
                 "License of API",
                 "API license URL",
                 Collections.emptyList());
