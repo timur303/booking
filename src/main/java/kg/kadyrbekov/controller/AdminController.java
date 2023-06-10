@@ -23,12 +23,12 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
-
-    @PostMapping("/{email}/roles/manager")
-    public ResponseEntity<Void> assignManagerRole(@PathVariable("email") String userEmail, @RequestBody UserRequest request) throws NotFoundException {
-        adminService.givesRoles(userEmail, request);
-        return ResponseEntity.ok().build();
-    }
+//
+//    @PostMapping("/{email}/roles/manager")
+//    public ResponseEntity<Void> assignManagerRole(@PathVariable("email") String userEmail, @RequestBody UserRequest request) throws NotFoundException {
+//        adminService.givesRoles(userEmail, request);
+//        return ResponseEntity.ok().build();
+//    }
 
     @GetMapping("")
     public String listUsers(Model model) {

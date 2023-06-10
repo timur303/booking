@@ -38,7 +38,7 @@ public class UserService {
         user.setEmail(email);
         user.setAge(request.getAge());
         user.setPassword(request.getPassword());
-        user.setManagerId(request.getManagerId());
+//        user.setManagerId(request.getManagerId());
 
         Optional<User> existingUser = userRepository.findByEmail(email);
         if (existingUser.isPresent()) {
@@ -97,7 +97,7 @@ public class UserService {
                 .age(user.getAge())
                 .email(user.getEmail())
                 .password(user.getPassword())
-                .clubManagerId(user.getManagerId())
+//                .clubManagerId(user.getManagerId())
                 .build();
     }
 

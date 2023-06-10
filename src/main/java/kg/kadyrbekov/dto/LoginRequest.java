@@ -1,21 +1,14 @@
 package kg.kadyrbekov.dto;
 
+
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class UserRequest {
-
-    private String firstName;
-
-    private String lastName;
-
-    private int age;
+public class LoginRequest {
 
     private String email;
-
-    private Long phoneNumber;
 
     private String password;
 

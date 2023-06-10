@@ -24,6 +24,4 @@ public class UserResponse {
 
     private int age;
 
-    private Long clubManagerId;
-
 }

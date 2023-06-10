@@ -1,8 +1,8 @@
 package kg.kadyrbekov.controller;
 
-
 import io.swagger.annotations.Api;
 import kg.kadyrbekov.config.jwt.JwtTokenUtil;
+import kg.kadyrbekov.dto.LoginRequest;
 import kg.kadyrbekov.dto.UserRequest;
 import kg.kadyrbekov.dto.UserResponse;
 import kg.kadyrbekov.model.User;
@@ -37,7 +37,7 @@ public class AuthController {
 
 
     @PostMapping("login")
-    public ResponseEntity<LoginResponse> getLogin(@RequestBody UserRequest request) {
+    public ResponseEntity<LoginResponse> getLogin(@RequestBody LoginRequest request) {
         try {
             UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(request.getEmail(),
                     request.getPassword());

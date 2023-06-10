@@ -39,18 +39,18 @@ public class AdminService {
         return userRepository.findAll();
     }
 
-    public void givesRoles(String email, UserRequest request) {
-        User user = userRepository.findByEmail(email).get();
-        Optional<User> existingUserWithManagerId = userRepository.findByManagerId(request.getManagerId());
-        if (existingUserWithManagerId.isPresent() && !existingUserWithManagerId.get().getId().equals(user.getId())) {
-            throw new RuntimeException("The managerId is already assigned to another user");
-        }
-        if (user != null) {
-            user.setRole(Role.MANAGER);
-            user.setManagerId(request.getManagerId());
-            userRepository.save(user);
-        }
-    }
+//    public void givesRoles(String email, UserRequest request) {
+//        User user = userRepository.findByEmail(email).get();
+//        Optional<User> existingUserWithManagerId = userRepository.findByManagerId(request.getManagerId());
+//        if (existingUserWithManagerId.isPresent() && !existingUserWithManagerId.get().getId().equals(user.getId())) {
+//            throw new RuntimeException("The managerId is already assigned to another user");
+//        }
+//        if (user != null) {
+//            user.setRole(Role.MANAGER);
+//            user.setManagerId(request.getManagerId());
+//            userRepository.save(user);
+//        }
+//    }
 
     public UserResponse createUser(UserRequest userRequest, Role role) {
         User user = new User();
