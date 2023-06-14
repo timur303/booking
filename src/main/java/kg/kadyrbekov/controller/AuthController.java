@@ -55,7 +55,7 @@ public class AuthController {
         return userService.register(userRequest);
     }
 
-    @PatchMapping("/update/{id}")
+    @PatchMapping("/updateUser/{id}")
     public UserResponse update(@PathVariable Long id, @RequestBody UserRequest request) {
         return userService.updateProfile(id, request);
     }
